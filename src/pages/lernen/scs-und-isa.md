@@ -1,4 +1,4 @@
 ---
 layout: ../../layouts/ChapterLayout.astro
-title: 'System- und Anwendungsebene'
+title: 'SCS und ISA'
 ---
