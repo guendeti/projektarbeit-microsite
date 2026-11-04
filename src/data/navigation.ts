@@ -1,35 +1,29 @@
-export const learningAreas = [
+export const chapterGroups = [
   {
-    title: '01 Grundlagen',
+    title: '01 Foundations',
     chapters: [
-      { slug: 'was-ist-softwarearchitektur', title: 'Was ist Softwarearchitektur?' },
-      { slug: 'system-und-anwendungsarchitektur', title: 'System- und Anwendungsebene' },
+      { slug: 'what-is-software-architecture', title: 'What is software architecture?' },
+      { slug: 'system-vs-application-architecture', title: 'System vs. application architecture' },
     ],
   },
   {
-    title: '02 Spring PetClinic',
-    chapters: [
-      { slug: 'spring-petclinic-kennenlernen', title: 'Spring PetClinic kennenlernen' },
-    ],
-  },
-  {
-    title: '03 Systemarchitektur',
+    title: '02 System architecture',
     chapters: [
       { slug: 'monolith', title: 'Monolith' },
       { slug: 'modular-monolith', title: 'Modular Monolith' },
       { slug: 'microservices', title: 'Microservices' },
-      { slug: 'scs-und-isa', title: 'Self-contained Systems und ISA' },
+      { slug: 'scs-and-isa', title: 'Self-contained Systems and ISA' },
     ],
   },
   {
-    title: '04 Anwendungsarchitektur',
+    title: '03 Application architecture',
     chapters: [
-      { slug: 'visit-use-case', title: 'Visit-Use-Case' },
+      { slug: 'visit-use-case', title: 'The Visit use case' },
       { slug: 'layered-architecture', title: 'Layered Architecture' },
       { slug: 'clean-architecture', title: 'Clean Architecture' },
-      { slug: 'hexagonal-architecture', title: 'Hexagonal Architecture' },
+      { slug: 'hexagonal-architecture', title: 'Hexagonal Architecture / Ports and Adapters' },
       { slug: 'onion-architecture', title: 'Onion Architecture' },
-      { slug: 'architekturvergleich', title: 'Architekturvergleich' },
+      { slug: 'architecture-comparison', title: 'Architecture comparison' },
     ],
   },
 ];

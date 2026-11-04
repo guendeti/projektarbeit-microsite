@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="585" viewBox="0 0 960 585" role="img" aria-labelledby="title desc">
+<title id="title">Our Clean booking calls storage through a core contract</title><desc id="desc">Web adapter creates BookVisitCommand Plain values cross into the application Outer transaction decorator invokes BookVisit The transaction covers use case and persistence adapter BookingVisit validates and calls VisitStore The core describes the storage operation it needs JpaVisitStore loads, checks, maps and saves Membership is checked against the loaded Owner Transaction commits, then return success The web adapter translates the outcome into a redirect</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#222"/></marker></defs>
+<rect width="960" height="585" fill="white"/>
+<g font-family="Arial, sans-serif" font-size="16" fill="#111">
+<text x="24" y="30" font-size="20" font-weight="bold">Our Clean booking calls storage through a core contract</text>
+<rect x="40" y="65" width="880" height="65" rx="4" fill="#f7f7f7" stroke="#333"/>
+<text x="480.0" y="91" text-anchor="middle">1. Web adapter creates BookVisitCommand</text>
+<text x="480.0" y="114" text-anchor="middle">Plain values cross into the application</text>
+<rect x="40" y="155" width="880" height="65" rx="4" fill="#f7f7f7" stroke="#333"/>
+<text x="480.0" y="181" text-anchor="middle">2. Outer transaction decorator invokes BookVisit</text>
+<text x="480.0" y="204" text-anchor="middle">The transaction covers use case and persistence adapter</text>
+<rect x="40" y="245" width="880" height="65" rx="4" fill="#f7f7f7" stroke="#333"/>
+<text x="480.0" y="271" text-anchor="middle">3. BookingVisit validates and calls VisitStore</text>
+<text x="480.0" y="294" text-anchor="middle">The core describes the storage operation it needs</text>
+<rect x="40" y="335" width="880" height="65" rx="4" fill="#f7f7f7" stroke="#333"/>
+<text x="480.0" y="361" text-anchor="middle">4. JpaVisitStore loads, checks, maps and saves</text>
+<text x="480.0" y="384" text-anchor="middle">Membership is checked against the loaded Owner</text>
+<rect x="40" y="425" width="880" height="65" rx="4" fill="#f7f7f7" stroke="#333"/>
+<text x="480.0" y="451" text-anchor="middle">5. Transaction commits, then return success</text>
+<text x="480.0" y="474" text-anchor="middle">The web adapter translates the outcome into a redirect</text>
+<path d="M480 130 L480 155" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M480 220 L480 245" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M480 310 L480 335" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M480 400 L480 425" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="24" y="541" font-size="14">The adapter handles the call at runtime and implements an interface owned by the core.</text>
+<text x="24" y="563" font-size="14">The decorator owns the outermost transaction here. An existing outer transaction would own the commit.</text>
+</g></svg>

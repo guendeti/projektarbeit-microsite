@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="440" viewBox="0 0 960 440" role="img" aria-labelledby="title desc">
+<title id="title">Proposed Visit operation inside one application</title><desc id="desc">Visits checks ownership through PetLookup and stores a Visit in a local transaction.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#222"/></marker></defs>
+<rect width="960" height="440" fill="white"/>
+<g font-family="Arial, sans-serif" font-size="16" fill="#111">
+<text x="24" y="30" font-size="20" font-weight="bold">Proposed Visit operation inside one application</text>
+<rect x="30" y="85" width="230" height="90" rx="4" fill="#f7f7f7" stroke="#333"/>
+<text x="145.0" y="111" text-anchor="middle">Visit entry point</text>
+<text x="145.0" y="134" text-anchor="middle">ownerId + petId</text>
+<text x="145.0" y="157" text-anchor="middle">date + description</text>
+<rect x="360" y="85" width="240" height="90" rx="4" fill="#f7f7f7" stroke="#333"/>
+<text x="480.0" y="111" text-anchor="middle">Visit processing</text>
+<text x="480.0" y="134" text-anchor="middle">Local transaction</text>
+<rect x="700" y="85" width="230" height="90" rx="4" fill="#f7f7f7" stroke="#333"/>
+<text x="815.0" y="111" text-anchor="middle">owners PetLookup API</text>
+<text x="815.0" y="134" text-anchor="middle">Check membership</text>
+<rect x="360" y="275" width="240" height="70" rx="4" fill="#f7f7f7" stroke="#333"/>
+<text x="480.0" y="301" text-anchor="middle">visits repository</text>
+<text x="480.0" y="324" text-anchor="middle">Store visit with petId</text>
+<path d="M260 130 L360 130" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="310.0" y="120.0" text-anchor="middle" font-size="14">call</text>
+<path d="M600 130 L700 130" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="650.0" y="120.0" text-anchor="middle" font-size="14">check</text>
+<path d="M480 175 L480 275" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="480.0" y="215.0" text-anchor="middle" font-size="14">save</text>
+<text x="24" y="396" font-size="14">Arrows show calls within the application. Replies are omitted.</text>
+<text x="24" y="418" font-size="14">Success follows commit. Membership checks still need explicit concurrency rules.</text>
+</g></svg>

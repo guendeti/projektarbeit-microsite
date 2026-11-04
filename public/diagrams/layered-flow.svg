@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="585" viewBox="0 0 960 585" role="img" aria-labelledby="title desc">
+<title id="title">Our Layered design gives booking its own operation</title><desc id="desc">MVC maps form to command Binding errors and redirects remain in presentation Transactional service validates command Use injected Clock for the future-date check Service loads Owner and selects its Pet Do not use a form-supplied entity as proof of membership Create one Visit, attach it and save Owner Retain the existing JPA cascade structure Transaction interceptor completes commit Only then does the controller receive success</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#222"/></marker></defs>
+<rect width="960" height="585" fill="white"/>
+<g font-family="Arial, sans-serif" font-size="16" fill="#111">
+<text x="24" y="30" font-size="20" font-weight="bold">Our Layered design gives booking its own operation</text>
+<rect x="40" y="65" width="880" height="65" rx="4" fill="#f7f7f7" stroke="#333"/>
+<text x="480.0" y="91" text-anchor="middle">1. MVC maps form to command</text>
+<text x="480.0" y="114" text-anchor="middle">Binding errors and redirects remain in presentation</text>
+<rect x="40" y="155" width="880" height="65" rx="4" fill="#f7f7f7" stroke="#333"/>
+<text x="480.0" y="181" text-anchor="middle">2. Transactional service validates command</text>
+<text x="480.0" y="204" text-anchor="middle">Use injected Clock for the future-date check</text>
+<rect x="40" y="245" width="880" height="65" rx="4" fill="#f7f7f7" stroke="#333"/>
+<text x="480.0" y="271" text-anchor="middle">3. Service loads Owner and selects its Pet</text>
+<text x="480.0" y="294" text-anchor="middle">Do not use a form-supplied entity as proof of membership</text>
+<rect x="40" y="335" width="880" height="65" rx="4" fill="#f7f7f7" stroke="#333"/>
+<text x="480.0" y="361" text-anchor="middle">4. Create one Visit, attach it and save Owner</text>
+<text x="480.0" y="384" text-anchor="middle">Retain the existing JPA cascade structure</text>
+<rect x="40" y="425" width="880" height="65" rx="4" fill="#f7f7f7" stroke="#333"/>
+<text x="480.0" y="451" text-anchor="middle">5. Transaction interceptor completes commit</text>
+<text x="480.0" y="474" text-anchor="middle">Only then does the controller receive success</text>
+<path d="M480 130 L480 155" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M480 220 L480 245" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M480 310 L480 335" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M480 400 L480 425" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="24" y="541" font-size="14">Successful flow when the service owns the outermost transaction. Error branches are omitted.</text>
+</g></svg>

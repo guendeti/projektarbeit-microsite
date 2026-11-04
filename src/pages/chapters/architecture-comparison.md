@@ -1,4 +1,5 @@
 ---
 layout: ../../layouts/ChapterLayout.astro
-title: 'Clean Architecture'
+title: 'Architecture comparison'
 ---
+

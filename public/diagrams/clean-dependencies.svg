@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="620" viewBox="0 0 1120 620" role="img" aria-labelledby="title desc">
+<title id="title">Clean booking separates core and technology</title><desc id="desc">Selected source dependencies in our proposed Clean design. Both ports, the use case and VisitDetails are inside the core. Web and persistence adapters are outside.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#24364a"/></marker></defs>
+<rect width="1120" height="620" fill="white"/>
+<g font-family="Arial, sans-serif" fill="#172638">
+<text x="24" y="32" font-size="22" text-anchor="start" font-weight="bold">Clean booking separates core and technology</text>
+<rect x="350" y="65" width="740" height="430" rx="8" fill="#f4f8fd" stroke="#426b99" stroke-width="2"/>
+<text x="366" y="90" font-size="16" text-anchor="start" font-weight="bold">Application core, no Spring MVC or JPA types</text>
+<rect x="20" y="145" width="270" height="85" rx="5" fill="#f5f7f9" stroke="#42566b" stroke-width="1.5"/>
+<text x="155.0" y="181.5" font-size="16" text-anchor="middle">Web adapter</text>
+<text x="155.0" y="205.5" font-size="16" text-anchor="middle">VisitController</text>
+<rect x="20" y="350" width="270" height="85" rx="5" fill="#f5f7f9" stroke="#42566b" stroke-width="1.5"/>
+<text x="155.0" y="386.5" font-size="16" text-anchor="middle">Persistence adapter</text>
+<text x="155.0" y="410.5" font-size="16" text-anchor="middle">JpaVisitStore</text>
+<rect x="390" y="145" width="270" height="85" rx="5" fill="#ffffff" stroke="#42566b" stroke-width="1.5"/>
+<text x="525.0" y="181.5" font-size="16" text-anchor="middle">Input port</text>
+<text x="525.0" y="205.5" font-size="16" text-anchor="middle">BookVisit</text>
+<rect x="780" y="145" width="270" height="85" rx="5" fill="#eaf2fb" stroke="#42566b" stroke-width="1.5"/>
+<text x="915.0" y="181.5" font-size="16" text-anchor="middle">Use case</text>
+<text x="915.0" y="205.5" font-size="16" text-anchor="middle">BookingVisit</text>
+<rect x="390" y="350" width="270" height="85" rx="5" fill="#ffffff" stroke="#42566b" stroke-width="1.5"/>
+<text x="525.0" y="386.5" font-size="16" text-anchor="middle">Output port</text>
+<text x="525.0" y="410.5" font-size="16" text-anchor="middle">VisitStore</text>
+<rect x="780" y="350" width="270" height="85" rx="5" fill="#eaf2fb" stroke="#42566b" stroke-width="1.5"/>
+<text x="915.0" y="386.5" font-size="16" text-anchor="middle">Booking values and policy</text>
+<text x="915.0" y="410.5" font-size="16" text-anchor="middle">VisitDetails</text>
+<path d="M290 187 H390" fill="none" stroke="#24364a" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="340" y="174" font-size="14" text-anchor="middle">calls via type</text>
+<path d="M780 187 H660" fill="none" stroke="#24364a" stroke-width="1.6" marker-end="url(#arrow)" stroke-dasharray="7 5"/>
+<text x="720" y="174" font-size="14" text-anchor="middle">implements</text>
+<path d="M290 392 H390" fill="none" stroke="#24364a" stroke-width="1.6" marker-end="url(#arrow)" stroke-dasharray="7 5"/>
+<text x="340" y="379" font-size="14" text-anchor="middle">implements</text>
+<path d="M865 230 L660 370" fill="none" stroke="#24364a" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="744" y="292" font-size="14" text-anchor="middle">requests append</text>
+<path d="M950 230 V350" fill="none" stroke="#24364a" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="950" y="288" font-size="14" text-anchor="middle">validates values</text>
+<text x="24" y="578" font-size="14" text-anchor="start">All arrows show selected source dependencies. Dashed arrows point to implemented interfaces.</text>
+<text x="24" y="600" font-size="14" text-anchor="start">Adapter dependencies on PetClinic entities and Spring configuration are omitted.</text>
+</g></svg>

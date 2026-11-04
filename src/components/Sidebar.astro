@@ -1,19 +1,19 @@
 ---
-import { base, learningAreas } from '../data/navigation';
+import { base, chapterGroups } from '../data/navigation';
 const currentPath = Astro.url.pathname.replace(/\/$/, '');
 ---
 <aside>
-  <nav aria-label="Lernbereiche und Kapitel">
-    <a href={`${base}/`}>Startseite</a>
-    {learningAreas.map(area => (
+  <nav aria-label="Chapter navigation">
+    <a href={`${base}/`}>Home</a>
+    {chapterGroups.map(group => (
       <section>
-        <h2>{area.title}</h2>
+        <h2>{group.title}</h2>
         <ul>
-          {area.chapters.map(chapter => (
+          {group.chapters.map(chapter => (
             <li>
               <a
-                href={`${base}/lernen/${chapter.slug}/`}
-                aria-current={currentPath === `${base}/lernen/${chapter.slug}` ? 'page' : undefined}
+                href={`${base}/chapters/${chapter.slug}/`}
+                aria-current={currentPath === `${base}/chapters/${chapter.slug}` ? 'page' : undefined}
               >{chapter.title}</a>
             </li>
           ))}

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="665" viewBox="0 0 960 665" role="img" aria-labelledby="title desc">
+<title id="title">Original PetClinic in one application</title>
+<desc id="desc">Browser uses MVC controllers and Thymeleaf. Owner Pet Visit and Vet entities plus repositories share one Spring Boot application. Database can be embedded or external.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#222"/></marker></defs>
+<rect width="960" height="665" fill="white"/>
+<g font-family="Arial, sans-serif" font-size="16" fill="#111">
+<text x="24" y="30" font-size="20" font-weight="bold">Original PetClinic in one application</text>
+<rect x="240" y="55" width="680" height="450" rx="4" fill="none" stroke="#333" stroke-width="2"/>
+<text x="260" y="82">Spring Boot application released as one unit</text>
+<g fill="#f7f7f7" stroke="#333">
+<rect x="25" y="105" width="165" height="70" rx="4"/>
+<rect x="400" y="105" width="300" height="70" rx="4"/>
+<rect x="270" y="245" width="300" height="70" rx="4"/>
+<rect x="630" y="245" width="240" height="70" rx="4"/>
+<rect x="430" y="390" width="330" height="65" rx="4"/>
+<rect x="350" y="550" width="530" height="60" rx="4"/>
+</g>
+<g text-anchor="middle">
+<text x="107" y="147">Browser</text>
+<text x="550" y="134">MVC controllers</text><text x="550" y="158">Thymeleaf views</text>
+<text x="420" y="274">Owner / Pet / Visit</text><text x="420" y="298">JPA entities</text>
+<text x="750" y="274">Vet</text><text x="750" y="298">JPA entity</text>
+<text x="595" y="418">Repositories</text><text x="595" y="442">Data access</text>
+<text x="615" y="586">Logical data store, embedded H2 or external by profile</text>
+</g>
+<g fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)">
+<path d="M190 140 H400"/>
+<path d="M440 175 L420 245"/>
+<path d="M670 175 L750 245"/>
+<path d="M600 175 V390"/>
+<path d="M595 455 V550"/>
+</g>
+<text x="270" y="130">HTTP</text>
+<text x="300" y="218" font-size="14">model objects</text>
+<text x="615" y="355" font-size="14">direct data access</text>
+<text x="610" y="531" font-size="14">JPA / SQL</text>
+<text x="24" y="648" font-size="14">Logical responsibilities and selected calls. Data-store placement is profile-dependent, not shown physically.</text>
+</g></svg>

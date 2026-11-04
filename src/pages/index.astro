@@ -1,4 +1,9 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
+import { base } from '../data/navigation';
 ---
-<SiteLayout title="Softwarearchitektur" />
+<SiteLayout title="Software architecture">
+  <p>Explore software architecture through Spring PetClinic. Compare how applications are deployed, how their code is organised, and what a change to a boundary means for the same Visit operation.</p>
+  <p>Start with <a href={`${base}/chapters/what-is-software-architecture/`}>the foundations</a>, or go directly to <a href={`${base}/chapters/visit-use-case/`}>the original Visit use case</a>.</p>
+  <p>The chapters distinguish verified PetClinic implementations from our proposed refactorings. Onion Architecture and the comprehensive comparison are planned for a later iteration.</p>
+</SiteLayout>
