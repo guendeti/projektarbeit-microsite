@@ -24,8 +24,8 @@ Our proposal separates Owners, Visits and Vets using the official PetClinic rela
 | `vets` | Veterinarians and specialties | Define APIs when a use case requires them |
 
 <figure class="architecture-figure">
-<div class="diagram-scroll" tabIndex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
-<img src="../../diagrams/modular-structure.svg" alt="Proposed owners, visits and vets modules with one deployment and shared technical database infrastructure. Visits calls the public PetLookup API." style={{maxWidth: '100%', height: 'auto'}} />
+<div class="diagram-scroll" tabindex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
+<img src="../../diagrams/modular-structure.svg" alt="Proposed owners, visits and vets modules with one deployment and shared technical database infrastructure. Visits calls the public PetLookup API." style="max-width:100%;height:auto" />
 </div>
 <figcaption>Proposed module ownership. The database infrastructure is shared, while each module accesses its own records. These access rules require explicit enforcement.</figcaption>
 </figure>
@@ -53,8 +53,8 @@ Its implementation could load an Owner and select its Pet. The original model pr
 4. It saves through its own repository. In this proposal, the booking operation owns the transaction, so success is returned after that transaction commits.
 
 <figure class="architecture-figure">
-<div class="diagram-scroll" tabIndex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
-<img src="../../diagrams/modular-visit-flow.svg" alt="Proposed Visits operation checks PetLookup and stores a Visit through its own repository inside a configured local transaction." style={{maxWidth: '100%', height: 'auto'}} />
+<div class="diagram-scroll" tabindex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
+<img src="../../diagrams/modular-visit-flow.svg" alt="Proposed Visits operation checks PetLookup and stores a Visit through its own repository inside a configured local transaction." style="max-width:100%;height:auto" />
 </div>
 <figcaption>Runtime calls in our proposed split. A repository return and a completed commit are different events.</figcaption>
 </figure>

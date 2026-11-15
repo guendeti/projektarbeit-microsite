@@ -28,8 +28,8 @@ The following proposal applies SCS principles to PetClinic. It introduces new sy
 | Vets | Vet records, specialties and UI | Only what its own future use cases require |
 
 <figure class="architecture-figure">
-<div class="diagram-scroll" tabIndex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
-<img src="../../diagrams/scs-structure.svg" alt="Proposed Owners and Pets, Visits, and Vets SCSs each own UI, logic and data. Owners and Pets provides navigation and deferred pet events to Visits." style={{maxWidth: '100%', height: 'auto'}} />
+<div class="diagram-scroll" tabindex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
+<img src="../../diagrams/scs-structure.svg" alt="Proposed Owners and Pets, Visits, and Vets SCSs each own UI, logic and data. Owners and Pets provides navigation and deferred pet events to Visits." style="max-width:100%;height:auto" />
 </div>
 <figcaption>Our SCS design. A browser link changes the user's destination. Events delivered later supply local data. Neither arrow grants direct access to another system's tables.</figcaption>
 </figure>
@@ -60,8 +60,8 @@ The event ID helps detect duplicate messages. The version helps decide whether a
 Visits validates input and checks its locally known Pet information and permissions. If the pet is known and usable, it saves the Visit together with an outgoing event record in a local transaction. After a successful commit, it can confirm the booking while a separate relay publishes the event. The response does not wait for delivery or remote processing.
 
 <figure class="architecture-figure">
-<div class="diagram-scroll" tabIndex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
-<img src="../../diagrams/scs-visit-flow.svg" alt="Proposed booking checks local pet data, commits Visit and outbox together, returns confirmation and delivers the event later." style={{maxWidth: '100%', height: 'auto'}} />
+<div class="diagram-scroll" tabindex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
+<img src="../../diagrams/scs-visit-flow.svg" alt="Proposed booking checks local pet data, commits Visit and outbox together, returns confirmation and delivers the event later." style="max-width:100%;height:auto" />
 </div>
 <figcaption>Proposed booking flow. Response handling and event publication both follow the commit and can proceed independently. Their relative completion order is not guaranteed.</figcaption>
 </figure>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="610" viewBox="0 0 960 610" role="img" aria-labelledby="title desc">
+  <title id="title">Clean Architecture responsibility areas</title>
+  <desc id="desc">Nested areas show frameworks and drivers on the outside, then interface adapters, use cases and entities. Arrows point inward and represent source dependency directions, not runtime calls. These areas do not prescribe a fixed package structure.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#24364a"/>
+    </marker>
+  </defs>
+  <rect width="960" height="610" fill="white"/>
+  <g font-family="Arial, sans-serif" fill="#24364a" text-anchor="middle">
+    <text x="480" y="32" font-size="22" font-weight="bold">Clean Architecture</text>
+    <rect x="32" y="64" width="896" height="480" rx="8" fill="#eaf2fb" stroke="#42566b" stroke-width="1.5"/>
+    <rect x="72" y="174" width="816" height="330" rx="8" fill="#edf5ef" stroke="#42566b" stroke-width="1.5"/>
+    <rect x="112" y="278" width="736" height="186" rx="8" fill="#fff5dc" stroke="#42566b" stroke-width="1.5"/>
+    <rect x="152" y="382" width="656" height="62" rx="8" fill="#fcebe6" stroke="#42566b" stroke-width="1.5"/>
+    <text x="480" y="98" font-size="19" font-weight="bold">Frameworks and drivers</text>
+    <text x="480" y="122" font-size="16">Web frameworks, databases and other technical details</text>
+    <text x="480" y="204" font-size="19" font-weight="bold">Interface adapters</text>
+    <text x="480" y="228" font-size="16">Controllers, presenters and persistence adapters</text>
+    <text x="480" y="308" font-size="19" font-weight="bold">Use cases</text>
+    <text x="480" y="332" font-size="16">Application-specific operations and rules</text>
+    <text x="480" y="407" font-size="19" font-weight="bold">Entities</text>
+    <text x="480" y="432" font-size="16">General business concepts and rules</text>
+    <g fill="none" stroke="#24364a" stroke-width="1.7" marker-end="url(#arrow)">
+      <path d="M480 135 V169"/>
+      <path d="M480 241 V273"/>
+      <path d="M480 345 V377"/>
+    </g>
+    <text x="480" y="575" font-size="16">Arrows show source dependencies pointing inward toward business rules.</text>
+    <text x="480" y="598" font-size="14">Responsibility areas, not a required package layout or runtime call sequence.</text>
+  </g>
+</svg>

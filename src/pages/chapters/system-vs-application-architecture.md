@@ -3,66 +3,72 @@ layout: ../../layouts/ChapterLayout.astro
 title: 'System vs. application architecture'
 ---
 
-A software system can be described through the applications that run it or through the code inside those applications. Each view answers different questions. Here, we use **system architecture** for the overall arrangement of applications and data stores, and **application architecture** for the organisation of code within an application.
+When examining software architecture, we can distinguish between two perspectives. **System architecture** looks at how applications and data stores are arranged and interact, while **application architecture** focuses on how responsibilities and dependencies are organised within an application.
 
 ## TL;DR
 
 System architecture concerns application boundaries, communication and deployment. Application architecture concerns internal responsibilities and dependencies. A system built from microservices can use Clean, Hexagonal or Onion Architecture inside its services.
 
-## Looking across applications
+## System architecture
 
-At the system level, we ask which applications make up the system, how they communicate and where their data is stored. This is a different view from examining individual classes and interfaces. The C4 model makes a similar distinction between applications and data stores and the components and code within them. <sup><a href="#ref-1">[1]</a></sup>
+At the system level, we look at which applications and data stores make up a system and how they interact. The C4 model helps us understand this structure by describing software at different levels of detail, from the overall system down to its code.
 
-For example, a team might keep several business functions in one application or separate them into services that can be deployed independently. This affects how releases are coordinated and how the system handles communication failures. Even with separate services, a change to a shared interface can still require coordination between teams. <sup><a href="#ref-2">[2]</a></sup>
+In the C4 model, a software system consists of one or more containers, such as applications and data stores. Within an application, components group related functionality, while code elements, such as classes and interfaces, implement those components. This allows us to understand both how the system is organised as a whole and how its individual applications are structured. <sup><a href="#ref-1">[1]</a></sup>
 
-## Looking inside an application
+Consider the pet clinic from the previous chapter. Visit booking and owner management could remain in one application or be separated into independently deployable services. This decision affects how changes are released and how the services communicate. While separate services offer more independence, communication between them can fail or time out, and changes to their interfaces may still require coordination between teams. <sup><a href="#ref-2">[2]</a></sup>
 
-Within an application, the questions become more specific. Which code handles incoming requests? Where do business rules belong? Which part reads and writes data? Separating these responsibilities into presentation, business logic and data access is one common approach. These are logical divisions in the code and do not, by themselves, require separate deployments. <sup><a href="#ref-3">[3]</a></sup>
+## Application architecture
 
-Clean, Hexagonal and Onion Architecture also address the internal organisation of software, with an emphasis on separating business rules from technologies such as user interfaces and databases. An important question is whether business rules directly reference user-interface or database code. The approaches share related goals, while differing in their terminology and structure. <sup><a href="#ref-4">[4]</a></sup>
+At the application level, we focus on how the code within an application is organised. Which part handles incoming requests? Where are business rules implemented? How is data stored and retrieved? Application architecture concerns how these responsibilities are divided and how the different parts of the code depend on one another.
 
-## How the two views fit together
+For example, the code that receives a request may rely on another part to apply business rules and access stored data. How we separate these responsibilities affects how easily we can modify or test them. These decisions concern the internal structure of the application and do not require separate deployments. <sup><a href="#ref-3">[3]</a></sup>
 
-A monolith can organise its code using Clean Architecture, just as an individual microservice can use a layered structure. Separating applications and organising their internal code are related decisions, but one does not prescribe the other. <sup><a href="#ref-2">[2]</a></sup> <sup><a href="#ref-3">[3]</a></sup> <sup><a href="#ref-4">[4]</a></sup>
+There are different ways to organise this structure, including Layered, Clean, Hexagonal and Onion Architecture. Each approach provides its own way of arranging responsibilities and dependencies, which we will examine in the following chapters. <sup><a href="#ref-3">[3]</a></sup> <sup><a href="#ref-4">[4]</a></sup>
 
-The following questions help identify which view is relevant when discussing a design.
+## How the two perspectives relate
+
+System and application architecture describe different aspects of the same software. System architecture concerns how functionality is divided between applications, while application architecture focuses on how the code inside each application is organised. These decisions are related, but one does not determine the other.
+
+For example, a monolith can use Clean Architecture to organise its code, while an individual microservice can use Layered Architecture. Having separate services does not automatically mean that their internal code is well organised. <sup><a href="#ref-2">[2]</a></sup> <sup><a href="#ref-3">[3]</a></sup> <sup><a href="#ref-4">[4]</a></sup>
+
+The following questions help distinguish the two perspectives.
 
 | Question | Architectural view |
 | --- | --- |
-| Are business functions released together or as separate applications? | System architecture |
-| How do applications exchange information? | System architecture |
-| Where are business rules implemented inside an application? | Application architecture |
-| Does business logic depend directly on database-specific types? | Application architecture |
+| Which functions belong in the same application or in separate services? | System architecture |
+| How do applications communicate with one another? | System architecture |
+| How are responsibilities divided within an application? | Application architecture |
+| How do different parts of the code depend on one another? | Application architecture |
 
-Both views are needed to understand the consequences of a change. Moving code into a new package changes its internal organisation, but does not make it independently deployable. Separating it into another service introduces a runtime boundary and communication that the code must handle. <sup><a href="#ref-1">[1]</a></sup> <sup><a href="#ref-2">[2]</a></sup>
+Understanding both perspectives helps us evaluate architectural decisions more carefully. A change that simplifies the code inside an application may introduce additional complexity elsewhere in the system. Considering both views allows us to recognise these trade-offs and make decisions based on their overall consequences.
 
-## PetClinic at both levels
+## Applying both perspectives to the pet clinic
 
-Consider a proposed design for recording a visit. From outside the application, we see a browser sending a request to the clinic application. Looking inside, we see a web controller, a booking operation that applies the rules, and a persistence adapter that connects the operation to data storage.
+Consider a simplified design for recording visits at the pet clinic. At the system level, a browser sends a request to the clinic application, which accesses a data store. Looking inside the application, a web controller handles the request, a booking operation applies the rules and a persistence adapter provides access to stored data.
 
 <figure class="architecture-figure">
 <div class="diagram-scroll" tabindex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
-<img src="../../diagrams/architecture-scales.svg" alt="A browser calls one clinic application. A closer view shows a web controller calling a booking use case, which calls a persistence adapter." style="max-width:100%;height:auto" />
+<img src="../../diagrams/architecture-scales.svg" alt="In a proposed clinic system, a browser calls one clinic application, which accesses a data store. Inside the application, a web controller calls a booking operation, which calls a persistence adapter." style="max-width:100%;height:auto" />
 </div>
-<figcaption>Two views of our proposed PetClinic design. Solid arrows show runtime calls. The dashed arrow indicates a closer view inside the application. The booking use-case class belongs to this proposal, not the original implementation.</figcaption>
+<figcaption>Two views of a simplified clinic system. This is an illustrative example, not the actual Spring PetClinic implementation.</figcaption>
 </figure>
 
-Suppose booking needs to be released independently from owner management. Moving it into a separate application could support that requirement, but we would need to decide how callers reach it and how it obtains the data it needs. Its internal separation of request handling, business rules and storage would still be a separate design choice.
+We could change how these responsibilities are organised without affecting the overall system structure. However, moving visit booking into a separate service would introduce a new application that needs to communicate with the rest of the system. We would also need to consider how it accesses the required data and how communication failures are handled. <sup><a href="#ref-2">[2]</a></sup>
 
-The new boundary also changes how calls can fail. A request to another application can time out, leaving the caller without an answer. Handling that outcome is part of the additional work introduced by the system-level decision to separate applications. <sup><a href="#ref-2">[2]</a></sup>
+As we can see, separating functionality into services involves more than reorganising code. It also introduces new ways for the system to communicate and fail.
 
 ## References
 
 <a id="ref-1"></a>
-**[1]** Simon Brown, *The C4 model*, n.d., "Abstractions," "Container" and "Component." Abstractions, applications and data stores, internal components. Accessed 3 November 2026.
+**[1]** Simon Brown, *The C4 model*, ["Abstractions"](https://c4model.com/abstractions), overview of software systems, containers, components and code. Accessed 3 November 2026.
 
 <a id="ref-2"></a>
-**[2]** James Lewis and Martin Fowler, "Microservices," 25 March 2014, introduction and sections "Componentization via Services" and "Design for failure." Original article. Accessed 3 November 2026.
+**[2]** James Lewis and Martin Fowler, ["Microservices"](https://martinfowler.com/articles/microservices.html), 25 March 2014, introduction and sections "Componentization via Services" and "Design for failure." Original article. Accessed 3 November 2026.
 
 <a id="ref-3"></a>
-**[3]** Martin Fowler, "Presentation Domain Data Layering," 26 August 2015, discussion of responsibilities, dependency direction and logical layers versus physical tiers. Original article. Accessed 3 November 2026.
+**[3]** Martin Fowler, ["Presentation Domain Data Layering"](https://martinfowler.com/bliki/PresentationDomainDataLayering.html), 26 August 2015, discussion of responsibilities, dependency direction and logical layers versus physical tiers. Original article. Accessed 3 November 2026.
 
 <a id="ref-4"></a>
-**[4]** Robert C. Martin, "The Clean Architecture," 13 August 2012, introduction and section "The Dependency Rule." Original article. Accessed 3 November 2026.
+**[4]** Robert C. Martin, ["The Clean Architecture"](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html), 13 August 2012, introduction and section "The Dependency Rule." Original article. Accessed 3 November 2026.
 
 Return to [What is software architecture?](../what-is-software-architecture/). Continue with [Monolith](../monolith/).
