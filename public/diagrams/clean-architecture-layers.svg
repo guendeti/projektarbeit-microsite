@@ -22,11 +22,11 @@
     <text x="480" y="407" font-size="19" font-weight="bold">Entities</text>
     <text x="480" y="432" font-size="16">General business concepts and rules</text>
     <g fill="none" stroke="#24364a" stroke-width="1.7" marker-end="url(#arrow)">
-      <path d="M480 135 V169"/>
-      <path d="M480 241 V273"/>
-      <path d="M480 345 V377"/>
+      <path d="M480 135 V174"/>
+      <path d="M480 241 V278"/>
+      <path d="M480 345 V382"/>
     </g>
     <text x="480" y="575" font-size="16">Arrows show source dependencies pointing inward toward business rules.</text>
-    <text x="480" y="598" font-size="14">Responsibility areas, not a required package layout or runtime call sequence.</text>
+    <text x="480" y="598" font-size="14">The same responsibilities can be organised into different package layouts.</text>
   </g>
 </svg>

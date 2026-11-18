@@ -3,294 +3,159 @@ layout: ../../layouts/ChapterLayout.astro
 title: 'Clean Architecture'
 ---
 
-Business rules often need to outlast the web interface or database used to deliver them. Clean Architecture separates these rules from technical details, so changing how an application receives input or stores data does not automatically require changing its core logic. The separation depends on which parts of the code are allowed to know about others. <sup><a href="#ref-1">[1]</a></sup>
+Suppose a receptionist at the pet clinic tries to book a visit for today. In [Spring PetClinic](../what-is-software-architecture/#about-the-spring-petclinic-example), the visit date must be in the future. A web form, a file import and an automated test could all ask the same question: can this visit be booked? Clean Architecture puts that decision in a use case that can run independently of the web framework and the database. <sup><a href="#ref-1">[1]</a></sup>
 
 ## TL;DR
 
-Clean Architecture places business rules and application operations at the centre, with frameworks and databases outside. Source dependencies point inward, so the core defines the contracts that outer code implements. This allows core logic to be tested without a web server or database, at the cost of additional boundaries, translation and configuration.
+The booking code defines the storage operations it needs. A database adapter implements them. During a booking, the use case calls the adapter through that interface. A test can supply an in-memory store through the same interface and exercise the same rules.
 
 ## The Dependency Rule
 
-A source dependency exists when code refers to a class, interface or other definition. The Dependency Rule requires these dependencies to point inward, toward the business rules. Inner code must not refer to types defined in an outer layer, including data formats tied to a web framework or database. This is the central constraint of Clean Architecture. <sup><a href="#ref-1">[1]</a></sup>
-
-The usual diagram groups responsibilities into four areas. Entities contain general business rules and concepts. Use cases coordinate application-specific operations. Interface adapters translate between the core and external representations. Frameworks and drivers supply technologies such as web frameworks and databases. An entity in this model is a business concept, not necessarily an object mapped to a database. <sup><a href="#ref-1">[1]</a></sup>
+Read the diagram from the centre outward. **Entities** hold business rules that can apply across applications. **Use cases** carry out tasks in a particular application, such as booking a visit. **Interface adapters** translate between the use case and a particular way of entering, displaying or storing data. **Frameworks and drivers** include the web framework, the database and the code that connects these tools to the application. <sup><a href="#ref-1">[1]</a></sup>
 
 <figure class="architecture-figure">
 <div class="diagram-scroll" tabindex="0" role="region" aria-label="Clean Architecture layers and inward source dependencies. Scroll horizontally to see the complete figure.">
 <img src="../../diagrams/clean-architecture-layers.svg" alt="Nested areas from outside to inside. Frameworks and drivers surround interface adapters, use cases and entities. Source dependency arrows point inward toward business rules." style="max-width:100%;height:auto" />
 </div>
-<figcaption>Typical responsibility areas in Clean Architecture. Arrows show permitted inward source dependency directions, not runtime calls or a requirement to use every adjacent layer. <sup><a href="#ref-1">[1]</a></sup></figcaption>
+<figcaption>The responsibility areas of Clean Architecture. Arrows show the permitted direction of source code dependencies. Own diagram based on the original description. <sup><a href="#ref-1">[1]</a></sup></figcaption>
 </figure>
 
-These areas do not prescribe four Java packages or an identical structure for every application. The key is to protect inner rules from outer details. When a use case needs storage, it can define an interface describing that need. An outer adapter implements the interface. Execution can then call outward to storage while the source dependency still points inward to the core's contract. This technique is dependency inversion. <sup><a href="#ref-1">[1]</a></sup>
+The arrows show which code may refer to which types. Across a boundary, source code dependencies point inward. For example, a controller may refer to a booking interface defined in the core. If the core accepted Spring MVC's form-validation result, it would acquire a dependency back on the web framework. The number of circles can vary. <sup><a href="#ref-1">[1]</a></sup>
 
-## From a shared service to an independent core
+## Where the boundary falls in Spring PetClinic
 
-Our [Layered design](../layered-architecture/) centralises booking, but its service still refers to `OwnerRepository` and objects mapped to the database through Jakarta Persistence (JPA). Suppose we want to reuse the booking rules without Spring MVC or those mapped objects. Which dependencies would we have to bring along?
+In the official application, the controller checks the date and saves an updated owner. <sup><a href="#ref-2">[2]</a></sup> In our [layered version](../layered-architecture/), the controller delegates booking to a service, but that service still accepts a JPA-mapped `Visit` and calls `OwnerRepository`. Our Clean refactoring changes what the booking code needs to know about storage. It lives in the same application under `visits.clean`.
 
-The simplified call sequences show how the booking work moves from the Layered service to a use case and storage adapter. Arrows indicate calls during execution, not source dependencies. The transaction wrapper is omitted here.
+| Responsibility | Where it lives in our version |
+| --- | --- |
+| Define and carry out a booking | The `core` package contains the input interface, the class that implements it, the storage interface and the date exception. |
+| Read the web form and store the visit | The `web` package handles form data and errors. The `persistence` package translates storage requests into operations on the existing PetClinic model. |
+| Connect the parts | `CleanVisitConfiguration` in `config` supplies the database adapter when Spring creates the booking use case. |
 
-```text
-Layered
-Controller -> Booking service -> OwnerRepository
+The word *entity* has two meanings here. In Martin's diagram it refers to general business rules. In Java Persistence (JPA), an entity is an object mapped to stored data. Our booking core keeps its rules in the use case. The existing PetClinic entities stay outside that core, where the adapter and the code that prepares the form can use them. <sup><a href="#ref-1">[1]</a></sup> <sup><a href="#ref-2">[2]</a></sup>
 
-Clean
-Controller -> BookingVisit -> JpaVisitStore -> OwnerRepository
-```
-
-The important change is the contract between `BookingVisit` and storage. The booking use case calls through `VisitStore`, an interface defined in the core. `JpaVisitStore` implements that interface and connects the request to the existing database code. The adapter refers to the core's contract, while the core never refers to `JpaVisitStore`. This applies the Dependency Rule to our operation. Adding more classes without changing these dependencies would not achieve the same separation.
-
-Our executable PetClinic example applies Clean Architecture to the Visit booking operation. The rest of the application retains its existing structure. The booking core is independent of the original PetClinic model. The persistence adapter uses its mapped objects for storage, while the web controller still loads Owner and Pet for display. The existing relationships are documented in the [baseline](../visit-use-case/). <sup><a href="#ref-2">[2]</a></sup>
-
-## Keep web and database types outside the core
-
-For this use case, success needs no generated Visit ID because the web caller redirects to the Owner page. We therefore choose a void booking operation. A caller needing the new ID would require a result contract as well.
-
-The packages separate the core from its web, persistence and configuration code.
-
-```text
-booking/
-  core/
-    BookVisit.java
-    BookVisitCommand.java
-    BookingVisit.java
-    VisitDetails.java
-    VisitStore.java
-    BookingRejected.java
-  web/
-    VisitController.java
-    VisitForm.java
-  persistence/
-    JpaVisitStore.java
-  configuration/
-    TransactionalBookVisit.java
-    BookingConfiguration.java
-```
-
-The core defines the operation, its values and its possible failures. Outer code translates web input, stores data and connects the objects that perform the work. These packages are our design convention, not a mandated Clean folder structure.
-
-The web adapter collects date and description in `VisitForm`, a separate form object rather than an object mapped to the database. The controller passes the values and the Owner and Pet identifiers to `BookVisit`. It translates rejected bookings into form errors or a missing-resource response. This keeps browser-specific input and error handling outside the core.
+Look first at the dashed arrow from `JpaVisitStore` to `VisitStore`. The adapter names the interface it implements. At runtime, a call goes the other way across that boundary: the use case calls a method on `VisitStore`, and Java runs the adapter's implementation. This is **dependency inversion**. Martin illustrates it with a presenter that receives use case results. Our example uses the same technique for storage. <sup><a href="#ref-1">[1]</a></sup>
 
 <figure class="architecture-figure">
 <div class="diagram-scroll" tabindex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
-<img src="../../diagrams/clean-dependencies.svg" alt="Controller depends on core BookVisit. BookingVisit implements it and uses core VisitStore. JpaVisitStore implements that contract. VisitDetails is core policy." style="max-width:100%;height:auto" />
+<img src="../../diagrams/clean-dependencies.svg" alt="CleanVisitController uses the input port BookVisitUseCase. BookVisitInteractor implements it and uses the output port VisitStore. JpaVisitStore implements VisitStore and uses OwnerRepository and the JPA entities. All dependencies that cross the core boundary point into the core." style="max-width:100%;height:auto" />
 </div>
-<figcaption>Source dependencies in our implementation. Dashed implementation arrows point to the contract. The core has no MVC or JPA imports.</figcaption>
+<figcaption>Source code dependencies in our Clean variant. Every arrow that crosses the boundary of the core points into it.</figcaption>
 </figure>
 
-## Move booking rules into the core
+## The two interfaces of the core
 
-`BookVisitCommand` groups the same input values as in Layered, the owner ID, pet ID, date and description. `BookingRejected` reports a rejected booking through an exception carrying an error code. Both belong to the core, so their use does not introduce a dependency on web or persistence code.
+The **input port** describes the operation a caller can ask the application to perform. A receptionist's form supplies two IDs, a date and a description. An import job could supply the same values.
 
-The date and description are grouped in `VisitDetails`, a value type that checks its own contents. Unlike the original controller's date check, the booking check below can run without a web request or database object.
+**Our addition · `BookVisitUseCase.java`, lines 24–28.** Local source `src/main/java/org/springframework/samples/petclinic/visits/clean/core/BookVisitUseCase.java`.
 
 ```java
-// Core value. Constructor also guards direct construction.
-public record VisitDetails(LocalDate date, String description) {
-    public VisitDetails {
-        if (date == null) {
-            throw new BookingRejected("date.required");
-        }
-        if (description == null || description.isBlank()) {
-            throw new BookingRejected("description.required");
-        }
-        if (description.length() > 255) {
-            throw new BookingRejected("description.tooLong");
-        }
-    }
+public interface BookVisitUseCase {
 
-    public static VisitDetails forBooking(
-            LocalDate date, String description, LocalDate today) {
-        VisitDetails details = new VisitDetails(date, description);
-        if (!details.date().isAfter(today)) {
-            throw new BookingRejected("date.mustBeFuture");
-        }
-        return details;
-    }
+    void bookVisit(int ownerId, int petId, LocalDate date, String description);
+
 }
 ```
 
-The `forBooking` method creates details for a new booking and checks that its date is in the future. This check belongs there rather than permanently in the constructor because a Visit scheduled for tomorrow becomes historical when time passes. **Valid to store as historical data** and **valid to book now** are different conditions in this design.
+The **output port** in our example describes what the use case needs from storage. Read the two methods as a question and an action. The first asks whether this owner has this pet. The second records a visit once the checks pass.
 
-The constructor enforces conditions that must always hold, such as having a date and a nonblank description. These are called invariants. The use case additionally checks whether booking is allowed today. Callers must therefore enter through `BookVisit` rather than bypass it and invoke storage directly.
-
-Requiring a date deliberately strengthens the baseline's nullable-date edge case. The other checks follow the source's controller rule and description constraints. <sup><a href="#ref-2">[2]</a></sup> Alongside the structural refactoring, our implementation uses a configurable clinic time zone, explicitly allows only date and description as form fields, and returns HTTP 404 for missing owners or pets outside the selected Owner. These are intentional behaviour changes, not requirements of Clean Architecture.
-
-## Let the core define its boundaries
-
-Instead of calling `OwnerRepository` as the Layered service does, the core defines its own storage contract. `BookVisit` describes how callers enter the use case, while `VisitStore` describes what the use case needs from storage. Neither interface exposes a framework type.
+**Our addition · `VisitStore.java`, lines 24–30.** Local source `src/main/java/org/springframework/samples/petclinic/visits/clean/core/VisitStore.java`.
 
 ```java
-// Core input boundary.
-public interface BookVisit {
-    void book(BookVisitCommand command);
-}
-
-// Core storage boundary.
 public interface VisitStore {
-    void appendForOwner(int ownerId, int petId, VisitDetails details);
+
+    boolean petBelongsToOwner(int ownerId, int petId);
+
+    void addVisit(int ownerId, int petId, LocalDate date, String description);
+
 }
 ```
 
-`VisitStore` exposes one operation rather than general CRUD methods for creating, reading, updating and deleting records. Its contract states what that operation must do.
+When the use case asks whether the pet belongs to the owner, it receives a boolean. The JPA adapter loads the owner to answer that question. The `Owner` object stays inside the adapter.
 
-- Check that the Owner exists and the Pet belongs to that Owner.
-- Append one Visit with the supplied details when those checks succeed.
-- Reject missing relationships using the agreed application failure codes.
-- Let technical failures reach the caller rather than silently turn them into success.
-- Participate in the operation's transaction, which the outer configuration supplies.
+## Following one booking through the use case
 
-This contract does not prevent duplicate bookings when a command is repeated, protect against all concurrent ownership changes or coordinate data in remote systems. Those guarantees would require stronger contracts and implementations.
+An **interactor** is the class that carries out a use case. In the code below, follow what happens first for today's date, then for tomorrow's.
 
-An interface that exposes `JpaRepository`, JPA `Owner` or MVC `BindingResult` would still require the core to depend on those external types. Our contract instead uses plain IDs and core values. This is our concrete application of the dependency rule. <sup><a href="#ref-1">[1]</a></sup>
-
-## Coordinate the operation without a framework
-
-`BookingVisit` brings the rules and storage contract together. Storage and the clock are passed into its constructor rather than created inside it. This lets the same use case run with the real database adapter or a test substitute, without changing its booking logic.
+**Our addition · `BookVisitInteractor.java`, lines 24–43.** Local source `src/main/java/org/springframework/samples/petclinic/visits/clean/core/BookVisitInteractor.java`.
 
 ```java
-// Core use case using java.time.Clock and LocalDate.
-public final class BookingVisit implements BookVisit {
-    private final VisitStore visits;
-    private final Clock clock;
+public class BookVisitInteractor implements BookVisitUseCase {
 
-    public BookingVisit(VisitStore visits, Clock clock) {
-        this.visits = visits;
-        this.clock = clock;
+    private final VisitStore visitStore;
+
+    public BookVisitInteractor(VisitStore visitStore) {
+        this.visitStore = visitStore;
     }
 
     @Override
-    public void book(BookVisitCommand command) {
-        LocalDate today = LocalDate.now(clock);
-        VisitDetails details = VisitDetails.forBooking(
-            command.date(), command.description(), today);
-        visits.appendForOwner(command.ownerId(), command.petId(), details);
-    }
-}
-```
-
-The caller must supply a non-null command. The outer configuration supplies a clock with the clinic's time zone. Tests can supply a fixed clock to check date rules without depending on the day they run. Java's Clock API supports this substitution. <sup><a href="#ref-3">[3]</a></sup>
-
-This use case is intentionally small. Its job is to apply booking policy and request storage. `VisitDetails` holds the small set of value rules in the same core package. We do not introduce a separate hierarchy of domain entities for this operation. The existing JPA entities remain persistence types outside the core.
-
-## Adapt persistence to the core's contract
-
-The persistence adapter imports the original Owner/Pet/Visit and repository types. It implements `VisitStore`, the interface defined by the core.
-
-| Layered code | Clean code | What changes |
-| --- | --- | --- |
-| Service holds `OwnerRepository` | Use case holds `VisitStore` | The core defines the operation it needs |
-| Service builds a JPA `Visit` | Adapter builds a JPA `Visit` | Database mapping stays outside the core |
-| Service calls `owners.save(owner)` | Use case calls `visits.appendForOwner(...)` | The use case describes its intent without referring to a JPA entity |
-
-```java
-// Outer adapter with a transaction supplied by the outer decorator.
-public final class JpaVisitStore implements VisitStore {
-    private final OwnerRepository owners;
-
-    public JpaVisitStore(OwnerRepository owners) {
-        this.owners = owners;
-    }
-
-    @Override
-    public void appendForOwner(
-            int ownerId, int petId, VisitDetails details) {
-        Owner owner = owners.findById(ownerId)
-            .orElseThrow(() -> new BookingRejected("owner.notFound"));
-        Pet pet = owner.getPet(petId);
-        if (pet == null) {
-            throw new BookingRejected("pet.notForOwner");
+    public void bookVisit(int ownerId, int petId, LocalDate date, String description) {
+        if (date == null || !date.isAfter(LocalDate.now())) {
+            throw new InvalidVisitDateException(date);
         }
-
-        Visit entity = new Visit();
-        entity.setDate(details.date());
-        entity.setDescription(details.description());
-        pet.addVisit(entity);
-        owners.save(owner);
+        if (!visitStore.petBelongsToOwner(ownerId, petId)) {
+            throw new IllegalArgumentException("Pet with id " + petId + " not found for owner with id " + ownerId);
+        }
+        visitStore.addVisit(ownerId, petId, date, description);
     }
+
 }
 ```
 
-The adapter creates the original PetClinic `Visit` object and attaches it to the Pet. The existing database mapping saves that Visit through the Owner's relationships. <sup><a href="#ref-2">[2]</a></sup> This translation keeps mapped objects out of `BookingVisit`. It is small here, but a larger model could require substantial mapping code and duplicated representations.
+For today, a past date or a missing date, the interactor throws `InvalidVisitDateException` before making any storage call. For tomorrow, it asks the store whether the selected pet belongs to the owner. Only a positive answer reaches `addVisit`. As in our layered version, rejecting a missing date is a deliberate change: the original controller skips its date check when the date is missing. <sup><a href="#ref-2">[2]</a></sup>
 
-The Owner/Pet check is an important design choice. The core-owned contract requires the relationship to hold, while the adapter checks the loaded records before appending. This keeps the core model small, but places enforcement of a required relationship inside each storage implementation. The dependency direction is preserved, although this decision is less visible in the use case. A fake that always accepts every pet would therefore fail to model the full contract.
+The description follows a different path. The web adapter checks that it contains text and is at most 255 characters long. The interactor passes it to the store. A caller using the input port directly gets the date and ownership checks, but must arrange description validation if it needs the same feedback as the form.
 
-An alternative would return relationship information to the use case and make the decision there. That makes the policy more visible in the core, while requiring another contract and an explicit strategy for changes between lookup and save. For this small implementation, we keep the check and append together. Neither arrangement makes concurrent ownership changes safe without a suitable transaction and concurrency policy.
+## How the adapters carry out the booking
 
-## Keep transaction handling outside the use case
+`CleanVisitController` receives a `VisitForm` and passes its date and description, together with the IDs from the URL, to the input port. If the interactor rejects the date, the controller attaches an error to the date field and shows the form again. A successful call returns normally, so the controller can redirect to the owner's page with a confirmation. Opening or redisplaying the form takes a separate path: the controller passes `OwnerRepository` to the shared form helper to load the owner and pet. The [Visit use case](../visit-use-case/#our-refactorings) explains this choice across the variants.
 
-The database changes for a booking should succeed or fail together. A transaction provides this unit of work. An outer wrapper, called a decorator, adds transaction handling around the use case. It implements the same `BookVisit` interface and delegates the booking. This keeps Spring transaction code outside the core and is our implementation choice, not a prescribed Clean Architecture class structure.
+For a valid booking, the following adapter supplies the two operations the interactor calls.
+
+**Our addition · `JpaVisitStore.java`, lines 37–50.** Local source `src/main/java/org/springframework/samples/petclinic/visits/clean/persistence/JpaVisitStore.java`.
 
 ```java
-// Outer transaction decorator configured as a Spring bean.
-public class TransactionalBookVisit implements BookVisit {
-    private final BookVisit delegate;
+@Override
+public boolean petBelongsToOwner(int ownerId, int petId) {
+    return owners.findById(ownerId).map(owner -> owner.getPet(petId) != null).orElse(false);
+}
 
-    public TransactionalBookVisit(BookVisit delegate) {
-        this.delegate = delegate;
-    }
-
-    @Override
-    @Transactional
-    public void book(BookVisitCommand command) {
-        delegate.book(command);
-    }
+@Override
+public void addVisit(int ownerId, int petId, LocalDate date, String description) {
+    Owner owner = owners.findById(ownerId).orElseThrow();
+    Visit visit = new Visit();
+    visit.setDate(date);
+    visit.setDescription(description);
+    owner.addVisit(petId, visit);
+    owners.save(owner);
 }
 ```
 
-The outer `BookingConfiguration` connects these objects. Its `@Bean` methods register the objects that Spring manages.
+The first lookup returns `false` both when the owner is missing and when that owner has no matching pet. The second method loads the owner again, creates a JPA `Visit` from the values supplied by the core, adds it to the pet and saves the owner. That second lookup is a cost of this implementation. There is no transaction around the whole use case, so the two port calls alone give no guarantee that ownership stays the same between checking and saving.
+
+The configuration below makes the choice of store explicit. Spring supplies the repository. The configuration wraps it in a `JpaVisitStore` and gives that adapter to the interactor.
+
+**Our addition · `CleanVisitConfiguration.java`, lines 32–35.** Local source `src/main/java/org/springframework/samples/petclinic/visits/clean/config/CleanVisitConfiguration.java`.
 
 ```java
 @Bean
-VisitStore visitStore(OwnerRepository owners) {
-    return new JpaVisitStore(owners);
-}
-
-@Bean
-BookVisit bookVisit(VisitStore store, Clock clinicClock) {
-    BookVisit useCase = new BookingVisit(store, clinicClock);
-    return new TransactionalBookVisit(useCase);
+BookVisitUseCase bookVisitUseCase(OwnerRepository owners) {
+    return new BookVisitInteractor(new JpaVisitStore(owners));
 }
 ```
 
-The controller receives Spring's managed `BookVisit`. Spring intercepts calls to apply `@Transactional`, so manually constructing the decorator would bypass this handling. The core itself needs no Spring annotation. <sup><a href="#ref-4">[4]</a></sup>
+## What the boundary buys the pet clinic
 
-<figure class="architecture-figure">
-<div class="diagram-scroll" tabindex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
-<img src="../../diagrams/clean-flow.svg" alt="Runtime. web maps command, transaction decorator enters the core, core calls VisitStore, JPA adapter maps and saves, then commit precedes success." style="max-width:100%;height:auto" />
-</div>
-<figcaption>Runtime flow for our web booking operation, with the transaction supplied by the outer decorator. The storage call goes outward at runtime, while the adapter's source depends on the core-owned interface.</figcaption>
-</figure>
+In our test, an in-memory store knows that pet 7 belongs to owner 1. Booking that pet for tomorrow adds a visit. Trying to book the same pet for owner 2 raises an error and leaves the store empty. The test calls the same input port as the controller without starting Spring or a database. It checks the booking decision. Verifying the JPA mapping still needs a database test. The [Hexagonal Architecture chapter](../hexagonal-architecture/#a-second-driving-adapter-a-test) shows the actual test code.
 
-For this web flow, Spring completes the booking transaction before returning to the controller. A commit failure must propagate rather than produce a success message. Runtime exceptions, including `BookingRejected`, trigger rollback by default. A caller with an existing transaction would share that transaction under the default settings, so its eventual commit could still fail after `book` returns. Transactions alone do not define how competing ownership changes are handled. <sup><a href="#ref-4">[4]</a></sup>
-
-## Compare the separation and its costs
-
-The table compares responsibilities in the original code and our two designs.
-
-| Question | Original Visit flow | Our Layered design | Our Clean design |
-| --- | --- | --- | --- |
-| Where is the future-date decision? | MVC controller | Shared independent policy called by service | Core booking factory called by use case |
-| What invokes persistence? | Controller | Application service | Adapter implementing core contract |
-| Does application logic refer to JPA model types? | Controller uses them | Service uses them | Core does not |
-| Who specifies storage needs? | Existing repository/model arrangement | Service consumes existing repository API | Core defines `VisitStore` |
-| Where is operation transaction scope explicit? | Not at controller level | Managed service method | Managed outer decorator |
-| What new maintenance appears? | Baseline | Command, policy and error mapping | Additional contract, mapping and composition |
-
-The Layered design already supports another caller. Our Clean design additionally keeps database and web types out of the booking core, allowing its rules to be tested without those technologies. The cost is more interfaces, data translation and configuration. For a small operation with no need for that separation, the Layered design may be sufficient. Clean does not guarantee cheap database replacement or make business requirements stable. Changing ownership semantics can still require edits to core contracts, adapters and callers.
+For a small clinic with one form, the [layered service](../layered-architecture/) already gives a second caller a way to reuse the date rule. What the extra interfaces buy here is independence from the storage model. If the clinic changes how visits are stored, the interactor can stay the same as long as the new store honours the same contract. The team still has to implement and wire that store and account for any changes to the data or the pages that read it.
 
 ## References
 
 <a id="ref-1"></a>
-**[1]** Robert C. Martin, “The Clean Architecture,” 13 August 2012, “The Dependency Rule,” “Entities,” “Use Cases,” “Interface Adapters,” “Frameworks and Drivers,” “Only Four Circles?,” “Crossing boundaries” and “What data crosses the boundaries.” Author's original article. Accessed 2 November 2026, revisited 4 November 2026.
+**[1]** Robert C. Martin, “[The Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html),” 13 August 2012, sections “The Dependency Rule,” “Entities,” “Use Cases,” “Interface Adapters,” “Frameworks and Drivers,” “Only Four Circles?,” “Crossing boundaries” and “What data crosses the boundaries.” Accessed 18 November 2026.
 
 <a id="ref-2"></a>
-**[2]** Spring Projects contributors, *Spring PetClinic*, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, `src/main/java/org/springframework/samples/petclinic/owner/`: VisitController.java, booking rule and save. Owner.java, `getPet`. Pet.java, cascade. Visit.java, field constraints. Accessed 2 November 2026. These sources support the baseline, not our added classes.
-
-<a id="ref-3"></a>
-**[3]** Oracle, *Java Platform SE: java.time.Clock*. Clock API. Accessed 2 November 2026.
-
-<a id="ref-4"></a>
-**[4]** Spring Framework team, *Reference Documentation: Using @Transactional*. Managed proxies, configuration and rollback defaults. Accessed 2 November 2026. The documentation explains the transaction mechanism. Transaction propagation, section on PROPAGATION_REQUIRED. Accessed 4 November 2026.
+**[2]** Spring Projects contributors, *Spring PetClinic*, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, [original visit form handler](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L95-L109) and [mapped visit and form fields](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/Visit.java#L33-L45). Accessed 18 November 2026.
 
 Return to [Layered Architecture](../layered-architecture/). Continue with [Hexagonal Architecture / Ports and Adapters](../hexagonal-architecture/).

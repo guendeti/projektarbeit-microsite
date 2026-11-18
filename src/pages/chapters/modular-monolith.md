@@ -3,151 +3,84 @@ layout: ../../layouts/ChapterLayout.astro
 title: 'Modular Monolith'
 ---
 
-As an application grows, a change to one feature can start requiring knowledge of many others. A modular monolith keeps one deployment unit while giving features explicit interfaces and restricting access to their implementation details. <sup><a href="#ref-1">[1]</a></sup> <sup><a href="#ref-2">[2]</a></sup>
+A modular monolith is an application that is deployed as a single unit and organised into modules. In [Spring PetClinic](../what-is-software-architecture/#about-the-spring-petclinic-example), the same application handles visit bookings and keeps track of owners. Suppose the clinic wants to send reminders before a visit. The reminder code needs a way to look up an owner's contact details. How much should it need to know about the code that manages owners? <sup><a href="#ref-1">[1]</a></sup>
 
 ## TL;DR
 
-A modular monolith releases its features together while keeping clear boundaries inside the code. Our Owners/Visits design uses an API, an agreed way for modules to call each other, and shows the work needed to keep their data consistent. The community Modulith chooses different boundaries and adds event-driven vet assignment. Neither arrangement gives modules independent deployments.
+A module gives other parts of the application a clear way to use the work it does. If reminders can ask for contact details through a lookup, the team can change how those details are stored while keeping the lookup working as before. The modules still run together and ship in the same release.
 
-## A module should hide a decision
+## What makes a useful module boundary?
 
-A module should hide design decisions that other modules do not need to know. A directory alone does not provide that protection. <sup><a href="#ref-1">[1]</a></sup> In our proposed PetClinic split, Visits asks whether a pet belongs to an owner through a public API, without reading the Owners module's tables or repositories directly.
+Consider two ways to build that reminder. The reminder code could read the owner's record and pick out the contact details itself. If the team later stores those details separately, it will also have to update the reminder code. Or the owner module could offer a lookup that returns just the details needed to send a reminder. Then the change to storage can stay inside the owner module as long as the lookup still gives callers the information they expect. This is **information hiding**. A module takes responsibility for a design decision that other parts of the application would otherwise have to understand. <sup><a href="#ref-1">[1]</a></sup>
 
-Spring Modulith supports public module APIs, internal implementation and declared dependencies. In its usual arrangement, direct subpackages of the application package become modules. Nested implementation packages remain internal unless deliberately exposed. <sup><a href="#ref-2">[2]</a></sup>
+The lookup is part of the owner module's **provided interface**, the operations it offers to other modules. From the reminder module's point of view, that same lookup is something it needs from another module, part of its **required interface**. In this example the two modules could communicate through an ordinary Java method call inside one application. <sup><a href="#ref-2">[2]</a></sup>
 
-Our proposal separates Owners, Visits and Vets using the official PetClinic relationships as a starting point. The existing community Modulith keeps different boundaries, so we distinguish its implementation from this proposed split.
+## Where the boundaries fall in Spring PetClinic
 
-| Module | Responsibility | Public conversation |
-| --- | --- | --- |
-| `owners` | Owners, pets and their relationship | `PetLookup` |
-| `visits` | Booking and visit history | Accept booking input and keep its repository internal |
-| `vets` | Veterinarians and specialties | Define APIs when a use case requires them |
+In the original Spring PetClinic, recording a visit involves an owner and a pet. Looking up a vet is a separate task. You can see that distinction in the Java code. The `owner` package handles owners, pets and visits, while `vet` handles the vet directory. Neither package imports classes from the other. Both use the shared `Person` class in `model`. <sup><a href="#ref-3">[3]</a></sup>
+
+Read each arrow in the diagram as “uses code from”. All four packages run in the same application.
 
 <figure class="architecture-figure">
 <div class="diagram-scroll" tabindex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
-<img src="../../diagrams/modular-structure.svg" alt="Proposed owners, visits and vets modules with one deployment and shared technical database infrastructure. Visits calls the public PetLookup API." style="max-width:100%;height:auto" />
+<img src="../../diagrams/modular-structure.svg" alt="Four packages in the original Spring PetClinic. Arrows from owner and vet point to model. There are no imports between owner and vet, or between system and the other three packages." style="max-width:100%;height:auto" />
 </div>
-<figcaption>Proposed module ownership. The database infrastructure is shared, while each module accesses its own records. These access rules require explicit enforcement.</figcaption>
+<figcaption>Imports between the four packages directly below the main application package. Each arrow points to the package whose code is used. Own diagram based on the original Spring PetClinic code. <sup><a href="#ref-3">[3]</a></sup></figcaption>
 </figure>
 
-## The smallest useful ownership conversation
+The diagram tells us which dependencies exist today. To understand which dependencies a developer could add tomorrow, look at what the packages make public. For example, Java keeps the package-private `VisitController` inside `owner`, but `OwnerRepository` is public. Another package can use that repository to load and save owners. A reminder that only needs a contact lookup would have access to much more than it needs. <sup><a href="#ref-3">[3]</a></sup>
 
-The public API asks one question.
+## Which boundaries can a test check?
+
+In our local PetClinic refactoring, we added a test using **Spring Modulith**, a library that can check dependencies between application modules. By default it treats each package directly below the main application package as a module. The diagram shows the four packages in the original application. The test below runs against our working copy, which has a fifth package, `visits`, for the booking examples on this site. <sup><a href="#ref-2">[2]</a></sup>
+
+**Our addition · `ModularityTests.java`, lines 28–43.** Local source `src/test/java/org/springframework/samples/petclinic/ModularityTests.java`.
 
 ```java
-// Proposed public API; not an upstream PetClinic type.
-public interface PetLookup {
-    boolean belongsToOwner(int petId, int ownerId);
+class ModularityTests {
+
+    private final ApplicationModules modules = ApplicationModules.of(PetClinicApplication.class);
+
+    @Test
+    void detectsTheExpectedModules() {
+        assertThat(modules.stream().map(ApplicationModule::getIdentifier).map(Object::toString)).contains("owner",
+                "vet", "model", "system", "visits");
+    }
+
+    @Test
+    void verifiesModularStructure() {
+        modules.verify();
+    }
+
 }
 ```
 
-Here `false` means that the pet is absent or does not belong to that owner. A database failure must propagate as a failure rather than become `false`. This API deliberately combines the two negative answers because booking cannot proceed in either case.
+Both tests passed in our local working copy. In the first test, `contains(...)` requires all five listed module names and allows additional modules. In the second test, `verify()` checks dependencies between modules. For example, if `owner` started using `vet` and `vet` also used `owner`, the two modules would form a cycle and `verify()` would report it. The check also catches access to another module's internal packages under the default rules. <sup><a href="#ref-2">[2]</a></sup>
 
-Its implementation could load an Owner and select its Pet. The original model provides those relationships. <sup><a href="#ref-3">[3]</a></sup> Visits sees the question rather than the repository or JPA mapping used to answer it.
+Now consider a dependency that those rules allow. In our working copy, the booking code in `visits` uses `OwnerRepository` directly. The repository is a public type in the base package of the owner module, which Spring Modulith treats as part of its API. The test therefore has no reason to reject that access on visibility grounds. Whether booking code should be able to save an entire owner is a question for the team. <sup><a href="#ref-2">[2]</a></sup> <sup><a href="#ref-3">[3]</a></sup>
 
-### Walk through booking
+## What should the owner module offer?
 
-1. Visits receives owner ID, pet ID, date and description.
-2. Its application operation validates the input and asks `PetLookup` about membership.
-3. If accepted, Visits creates its own Visit record containing the pet ID.
-4. It saves through its own repository. In this proposal, the booking operation owns the transaction, so success is returned after that transaction commits.
+For the reminder we imagined earlier, the team could offer the contact lookup as the public operation and move the repository into an internal package. Java might still require the repository to be public so that code elsewhere in the same module can use it. Spring Modulith understands the wider module boundary and could flag a caller in `visits` that still used the repository directly. That is a possible redesign. The working copy used for the test keeps the repository in `owner`. <sup><a href="#ref-2">[2]</a></sup>
 
-<figure class="architecture-figure">
-<div class="diagram-scroll" tabindex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
-<img src="../../diagrams/modular-visit-flow.svg" alt="Proposed Visits operation checks PetLookup and stores a Visit through its own repository inside a configured local transaction." style="max-width:100%;height:auto" />
-</div>
-<figcaption>Runtime calls in our proposed split. A repository return and a completed commit are different events.</figcaption>
-</figure>
+A narrower interface takes work. The team needs to find out what existing callers use and give them a way to do their jobs before moving the repository. In return, those callers can keep using the same operations when storage changes. The reminder example gives the team a practical way to decide what belongs in the interface. Which operations does another feature actually need? <sup><a href="#ref-1">[1]</a></sup>
 
-### The difficult part is the relationship
+## When one deployment still fits
 
-Originally, `Pet` holds Visit entities with cascading persistence. <sup><a href="#ref-3">[3]</a></sup> Keeping that Java relationship after extracting Visit into its own module would introduce an Owners-to-Visits dependency alongside our proposed Visits-to-Owners API dependency.
-
-Our split therefore changes the model, not just packages. We would remove the cross-module entity collection, give Visits its own records and combine information explicitly when displaying history.
-
-A successful membership check still leaves time for the pet to be deleted or reassigned before the Visit is stored. This is the check-then-write gap. We would need deletion rules, a transaction boundary and suitable database constraints or locks. Constraints reject invalid stored relationships, while locks can restrict competing operations. Starting a transaction alone does not choose how concurrent work is isolated. <sup><a href="#ref-4">[4]</a></sup>
-
-These are costs of our boundary. If visits and owner management naturally change together, retaining them in one module may be more coherent.
-
-## A different boundary in the community Modulith
-
-The pinned community Modulith keeps Visits in `owner`. `VisitScheduler.bookVisit` reloads the Owner, adds the Visit, flushes pending changes to the database and publishes `VisitBooked` in a transactional method. <sup><a href="#ref-5">[5]</a></sup>
-
-`VetEventListener` receives the event. `VetRoster` counts assignments on or after the supplied visit date, chooses a vet and persists an assignment. This extends the official Visit model. It does not fully check working hours, appointment overlap or suitability. <sup><a href="#ref-6">[6]</a></sup>
-
-| Observation | Interpretation |
-| --- | --- |
-| Event information flows from `owner` to `vet`. | Information flow is not source dependency direction. |
-| The listener imports `owner.VisitBooked`. | The type dependency points from `vet` to the event owner. |
-| The listener uses `@ApplicationModuleListener`. | With asynchronous execution configured, processing follows the publishing transaction's successful commit. |
-| Assignment follows the booking transaction. | Booking and assignment are separate outcomes. |
-
-Spring Modulith combines transaction handling and asynchronous execution in `@ApplicationModuleListener`. Asynchronous means the publishing operation does not wait for that work to finish. It needs appropriate application setup. Event publication tracking supports reliable processing, but safe retries and handling failures remain necessary. <sup><a href="#ref-7">[7]</a></sup>
-
-A failed assignment should therefore be visible and recoverable. Repeating booking to repair it could create another Visit. Recovery should target the incomplete assignment, not the completed booking.
-
-## Make the boundary checkable
-
-The package structure keeps the public API separate from internal code.
-
-```text
-petclinic/
-  owners/
-    PetLookup.java
-    internal/OwnerRepository.java
-  visits/
-    package-info.java
-    internal/VisitService.java
-    internal/VisitRepository.java
-  vets/
-    internal/VetRepository.java
-```
-
-A module declaration can restrict what Visits may access.
-
-```java
-@ApplicationModule(allowedDependencies = "owners")
-package example.petclinic.visits;
-
-import org.springframework.modulith.ApplicationModule;
-```
-
-The declaration permits the public Owners API, not arbitrary internal types. `ApplicationModules.of(Application.class).verify()` checks cycles, access to internals and configured allowed dependencies. Features such as open modules introduce documented exceptions. <sup><a href="#ref-8">[8]</a></sup>
-
-The check would detect structural violations, not prove sensible business boundaries, enforce SQL permissions or establish concurrency correctness.
-
-## When visits gain a status
-
-Suppose Visits gains requested, confirmed and cancelled states. In our split, that evolution could remain inside Visits. If every update requires manipulating Owners internals, we should revisit the contract or the boundary.
-
-A direct API supplies an immediate answer. An event announces a fact to interested listeners. Events are not inherently asynchronous and do not remove dependencies. They change what the participants agree to do and when. <sup><a href="#ref-7">[7]</a></sup>
-
-Shared releases, scaling and process risks remain. A later extraction to another process would still need decisions about remote failure and data ownership. Our module boundary exposes those questions without automatically solving them.
+A modular monolith suits the pet clinic if the team wants to change how it manages owners without having to revisit the reminder code each time, and a shared release still works well. If bookings get busy, starting a second instance still starts the vet directory too. A module boundary helps the team control dependencies in the code. Scaling or deploying booking on its own would require a separate deployment boundary, which the [Microservices](../microservices/) chapter explores. <sup><a href="#ref-4">[4]</a></sup>
 
 ## References
 
 <a id="ref-1"></a>
-**[1]** D. L. Parnas, “On the criteria to be used in decomposing systems into modules,” *Communications of the ACM*, vol. 15, no. 12, pp. 1053–1058, December 1972. DOI: 10.1145/361598.361623. digitised article hosted by Lafayette College, section “The Criteria.” Accessed 2 November 2026. The principle motivates our design. It does not prescribe our module names.
+**[1]** D. L. Parnas, "[On the Criteria To Be Used in Decomposing Systems into Modules](https://doi.org/10.1145/361598.361623)," *Communications of the ACM*, vol. 15, no. 12, pp. 1053–1058, 1972, [discussion and conclusion](https://www.cs.lafayette.edu/~gexia/cs301/resources/parnas.html).
 
 <a id="ref-2"></a>
-**[2]** Spring Modulith team, *Reference Documentation, version 2.1.1: Fundamentals*. Module APIs and structure. Accessed 4 November 2026.
+**[2]** Spring Modulith team, *Spring Modulith Reference Documentation*, version 2.1.1, "[Fundamentals](https://github.com/spring-projects/spring-modulith/blob/2.1.1/src/docs/antora/modules/ROOT/pages/fundamentals.adoc)" (provided and required interfaces, package detection and internal packages) and "[Verifying Application Module Structure](https://github.com/spring-projects/spring-modulith/blob/2.1.1/src/docs/antora/modules/ROOT/pages/verification.adoc)" (cycles and access to module internals). Accessed 17 November 2026.
 
 <a id="ref-3"></a>
-**[3]** Spring Projects contributors, *Spring PetClinic*, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, `src/main/java/org/springframework/samples/petclinic/owner/`: Owner.java, `pets`, `getPet`, `addVisit`. Pet.java, `visits`. Accessed 2 November 2026.
+**[3]** Spring Projects contributors, *Spring PetClinic*, commit `500158f732419217507c7656904b8e6aa1bcc0d6`. [Application packages](https://github.com/spring-projects/spring-petclinic/tree/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic), [Owner](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/Owner.java#L50), [Vet](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/vet/Vet.java#L45), [VisitController](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L43) and [OwnerRepository](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/OwnerRepository.java#L36). Accessed 17 November 2026.
 
 <a id="ref-4"></a>
-**[4]** Spring Data team, *Spring Data JPA Reference: Transactionality*. Facade transactions. Accessed 2 November 2026.
-
-<a id="ref-5"></a>
-**[5]** Spring PetClinic Community, *Spring PetClinic Modulith*, commit `58c3310e36c7d827959df6af4d64bdeb8d81f1ea`, `src/main/java/org/springframework/samples/petclinic/owner/application/VisitScheduler.java`, `bookVisit`. Pinned source. Accessed 2 November 2026.
-
-<a id="ref-6"></a>
-**[6]** Spring PetClinic Community, same commit, `src/main/java/org/springframework/samples/petclinic/vet/internal/`: VetEventListener.java, `on(VisitBooked)`. VetRoster.java, `assignVet`. Accessed 2 November 2026.
-
-<a id="ref-7"></a>
-**[7]** Spring Modulith team, *Reference Documentation, version 2.1.1: Working with Application Events*. Listener and publication registry semantics. Accessed 4 November 2026.
-
-<a id="ref-8"></a>
-**[8]** Spring Modulith team, *Reference Documentation, version 2.1.1: Verifying Application Module Structure*. Verification rules. Accessed 4 November 2026. The documentation explains the module verification mechanism.
+**[4]** James Lewis and Martin Fowler, "[Microservices](https://martinfowler.com/articles/microservices.html)," 25 March 2014, introduction and "Componentization via Services." Accessed 17 November 2026.
 
 Return to [Monolith](../monolith/). Continue with [Microservices](../microservices/).

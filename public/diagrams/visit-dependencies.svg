@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="440" viewBox="0 0 960 440" role="img" aria-labelledby="title desc">
-<title id="title">Selected dependencies in the original PetClinic</title><desc id="desc">Controller uses repository and model types. Owner contains Pets, and Pet contains Visits. Repository extends JpaRepository.</desc>
+<title id="title">Dependencies in the original Spring PetClinic</title><desc id="desc">Controller uses repository and model types. Owner contains Pets, and Pet contains Visits. Repository extends JpaRepository.</desc>
 <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#222"/></marker></defs>
 <rect width="960" height="440" fill="white"/>
 <g font-family="Arial, sans-serif" font-size="16" fill="#111">
-<text x="24" y="30" font-size="20" font-weight="bold">Selected dependencies in the original PetClinic</text>
+<text x="24" y="30" font-size="20" font-weight="bold">Dependencies in the original Spring PetClinic</text>
 <rect x="25" y="90" width="260" height="80" rx="4" fill="#f7f7f7" stroke="#333"/>
 <text x="155.0" y="116" text-anchor="middle">VisitController</text>
 <text x="155.0" y="139" text-anchor="middle">Spring MVC</text>
@@ -29,6 +29,6 @@
 <text x="815.0" y="195.0" text-anchor="middle" font-size="14">contains</text>
 <path d="M700 275 L610 275" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)"/>
 <text x="655.0" y="265.0" text-anchor="middle" font-size="14">contains</text>
-<text x="24" y="396" font-size="14">Arrows show selected type references and model relationships, not runtime order.</text>
-<text x="24" y="418" font-size="14">Controller also uses Owner and Pet. Base classes and other framework types are omitted.</text>
+<text x="24" y="396" font-size="14">Arrows show source code dependencies and model relationships, not runtime order.</text>
+<text x="24" y="418" font-size="14">Controller also uses Owner and Pet. Base classes are omitted. Own diagram of the pinned source code.</text>
 </g></svg>

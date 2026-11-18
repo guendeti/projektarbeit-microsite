@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="650" viewBox="0 0 1000 650" role="img" aria-labelledby="title desc">
+  <title id="title">Onion variant: rings around the domain model</title>
+  <desc id="desc">Three rings. In the centre is the domain with the model classes PetOwner and NewVisit and the PetOwnerRepository interface. Around it is the application ring with VisitBookingService. The outer ring holds the user interface with OnionVisitController, the infrastructure with JpaPetOwnerRepository, and the tests with PetOwnerTests. Dependencies point toward the centre.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#24364a"/>
+    </marker>
+  </defs>
+  <rect width="1000" height="650" fill="white"/>
+  <g font-family="Arial, sans-serif" fill="#172638">
+    <text x="24" y="32" font-size="20" font-weight="bold">Onion variant: rings around the domain model</text>
+
+    <ellipse cx="500" cy="323" rx="480" ry="245" fill="#eaf2fb" stroke="#42566b" stroke-width="1.5"/>
+    <ellipse cx="500" cy="355" rx="275" ry="166" fill="#edf5ef" stroke="#42566b" stroke-width="1.5"/>
+    <ellipse cx="500" cy="400" rx="160" ry="112" fill="#fff5dc" stroke="#8a6d1f" stroke-width="2"/>
+
+    <text x="500" y="128" font-size="17" text-anchor="middle" font-weight="bold">User interface, infrastructure and tests</text>
+
+    <text x="500" y="230" font-size="17" text-anchor="middle" font-weight="bold">Application</text>
+    <text x="500" y="254" font-size="15" text-anchor="middle">VisitBookingService</text>
+
+    <text x="500" y="350" font-size="17" text-anchor="middle" font-weight="bold">Domain</text>
+    <text x="500" y="378" font-size="15" text-anchor="middle">PetOwner</text>
+    <text x="500" y="400" font-size="15" text-anchor="middle">NewVisit</text>
+    <text x="500" y="422" font-size="15" text-anchor="middle">PetOwnerRepository</text>
+    <text x="500" y="442" font-size="12" text-anchor="middle">(repository interface)</text>
+
+    <text x="500" y="157" font-size="15" text-anchor="middle">OnionVisitController</text>
+    <text x="855" y="400" font-size="15" text-anchor="middle">JpaPetOwnerRepository</text>
+    <text x="145" y="400" font-size="15" text-anchor="middle">PetOwnerTests</text>
+
+    <g fill="none" stroke="#24364a" stroke-width="1.8" marker-end="url(#arrow)">
+      <path d="M500 164 V211"/>
+      <path d="M500 263 V311"/>
+      <path d="M766 407 L588 421"/>
+      <path d="M204 395 L449 375"/>
+    </g>
+    <text x="692" y="398" font-size="14" text-anchor="middle">implements</text>
+    <text x="285" y="374" font-size="14" text-anchor="middle">tests</text>
+
+    <text x="24" y="600" font-size="14">Arrows show selected source code dependencies for booking. Outer code can refer directly to the domain.</text>
+    <text x="24" y="625" font-size="14">The service uses the domain model and its repository interface. The outer implementation uses Spring Data JPA.</text>
+  </g>
+</svg>

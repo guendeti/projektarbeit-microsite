@@ -3,91 +3,97 @@ layout: ../../layouts/ChapterLayout.astro
 title: 'Microservices'
 ---
 
-Separate teams may need to release or scale different business functions at different times. Microservices address this by placing those functions in independently deployable services, with explicit communication between them. That independence also introduces network failures and coordination over shared contracts. <sup><a href="#ref-1">[1]</a></sup>
+In [Spring PetClinic](../what-is-software-architecture/#about-the-spring-petclinic-example), receptionists book visits and look up vets. Suppose the booking team wants to release a new field for the expected length of a visit while the vet directory stays on its current version. In a monolith, the clinic releases the booking form and the vet directory together. With booking and the directory in separate **microservices**, the booking team can release the new form on its own. Each service runs in its own process and provides an interface that other parts of the application can use. <sup><a href="#ref-1">[1]</a></sup>
 
 ## TL;DR
 
-The community PetClinic separates Customers, Visits and Vets into applications communicating over HTTP. Each owns its persistence model. This enables separate deployment boundaries, while data retrieval can depend on several services. In the inspected implementation, creating a Visit does not call Customers to check ownership.
+Microservices let teams release and scale different parts of an application independently. In our proposed pet clinic design, the Visits team owns the booking form and the visit records. It can change both together. To confirm a booking, though, it needs to know whether the selected pet belongs to the owner. Who has that information, and what should the receptionist see if it is unavailable?
 
-## From internal modules to applications
+## From packages to services
 
-Microservices organise software around business capabilities and independently deployable services. Keeping their contracts compatible is part of making independent releases practical. Separate processes alone do not remove that coordination. <sup><a href="#ref-1">[1]</a></sup>
+In the [modular monolith](../modular-monolith/), modules have clear boundaries in the code and run in one application. With microservices, a boundary also changes how the code runs. For example, if the vet directory gets much more traffic than booking, the clinic can run extra copies of the Vets service on its own. Teams can also release at different times, provided a change to a service's API still works with the clients that use it. <sup><a href="#ref-1">[1]</a></sup>
 
-The community PetClinic repository contains separate Customers, Visits and Vets applications. A gateway provides a shared entry point and routes requests to them. The Compose configuration defines separate images, containers and ports, even though the applications belong to one Maven build. Deployment boundaries therefore cannot be inferred from the number of repositories. <sup><a href="#ref-2">[2]</a></sup>
+## Who owns which part
 
-<figure class="architecture-figure">
-<div class="diagram-scroll" tabindex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
-<img src="../../diagrams/microservices-structure.svg" alt="Browser enters through the API gateway. Customers, Visits and Vets run as separate applications with their own persistence models." style="max-width:100%;height:auto" />
-</div>
-<figcaption>Application boundaries in the community PetClinic <sup><a href="#ref-2">[2]</a></sup>. Supporting infrastructure is omitted. Physical database placement depends on the deployment configuration.</figcaption>
-</figure>
+A common way to draw service boundaries is to look at what people need to do. In the official Spring PetClinic, the `owner` package already groups owners, pets and visits, while the `vet` package contains the vet directory. <sup><a href="#ref-2">[2]</a></sup> Suppose the clinic now has a team that looks after booking and regularly changes the form and the rules behind it. That gives us a reason to consider moving visits into their own service.
 
-## Trace two operations separately
+| In our proposed design | What the team looks after |
+| --- | --- |
+| Owners | Owner and pet records, including which pets belong to each owner, and the pages that show them |
+| Visits | The booking form, visit records and the visit history shown on the owner page |
+| Vets | Vet profiles, their specialties and the directory where receptionists look them up |
 
-### Create a Visit
+Here each team owns its pages, its service and its data, and runs its service in production. Giving the Visits team the booking form means it can add the duration field without waiting for another team to update the page. Each service controls access to the records it owns. The services could use separate databases or share a database server with private schemas. In either setup, Visits asks Owners for pet information through its API. <sup><a href="#ref-1">[1]</a></sup>
 
-`VisitResource.create` accepts a Visit, assigns the path's `petId` and saves through `VisitRepository`. Its mapping uses `owners/*/pets/{petId}/visits`. The `*` matches the owner portion of the path without assigning it to an owner parameter. This method contains neither a Customers call nor an owner–pet membership check. <sup><a href="#ref-3">[3]</a></sup>
-
-### Assemble Owner details
-
-A different operation does contact multiple services. The gateway's `getOwnerDetails` first retrieves Owner/Pet information from Customers, then requests Visits for those pet IDs and combines the results. A circuit breaker handles failures in a remote call. Here its fallback, the alternative result used on failure, is an empty Visits list. <sup><a href="#ref-4">[4]</a></sup>
+In our proposed design, each team's pages are reached through a shared API gateway. Follow the arrows from the browser. Looking up a vet takes one call from the gateway to Vets. Booking a visit adds a call from Visits to Owners.
 
 <figure class="architecture-figure">
 <div class="diagram-scroll" tabindex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
-<img src="../../diagrams/microservices-owner-flow.svg" alt="Gateway first retrieves an Owner from Customers, then Visits for the pet IDs, and combines the response. Visits failures use an empty-list fallback." style="max-width:100%;height:auto" />
+<img src="../../diagrams/microservices-structure.svg" alt="A browser talks to an API gateway, which routes requests to the Owners, Visits and Vets services. Each service is owned by one team, has its own pages and its own database. During booking, the Visits service calls the Owners service." style="max-width:100%;height:auto" />
 </div>
-<figcaption>Gateway read sequence <sup><a href="#ref-4">[4]</a></sup>. The gateway calls both services and combines their responses.</figcaption>
+<figcaption>Proposed design for Spring PetClinic. Each dashed frame shows what one team owns. Arrows show requests and database access at runtime. The service split is an example developed for this chapter. <sup><a href="#ref-2">[2]</a></sup></figcaption>
 </figure>
 
-An empty list can hide an important distinction. It may mean “no visits” or “visit history unavailable.” Our UI recommendation is to show those outcomes differently, so a receptionist does not mistake missing information for a complete history.
+The **API gateway** gives the browser one address and forwards each request to the right service. For example, requests under `/visits` go to Visits. A gateway can also combine responses for a client that needs data from several services. In the owner page example below, the browser requests the two parts separately. <sup><a href="#ref-3">[3]</a></sup>
 
-## A pet ID is a reference, not a consistency protocol
+## Booking a visit across a service boundary
 
-In this sample, the Visits model stores a pet identifier instead of sharing the Customers entity graph. <sup><a href="#ref-3">[3]</a></sup> Knowing that identifier does not establish who currently owns the pet. If booking must verify that relationship, the services need an explicit way to obtain or maintain the required information.
+In the official application, the controller first loads the owner. It then looks for the selected pet among that owner's pets. This matters because finding a pet somewhere in the clinic would answer a different question. <sup><a href="#ref-2">[2]</a></sup>
 
-For that additional requirement, we could consider three alternatives.
+**Original Spring PetClinic · `VisitController.java`, lines 70–74.** [View these lines in the official repository](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L70-L74).
 
-| Option | Meaning for booking | New question |
+```java
+Pet pet = owner.getPet(petId);
+if (pet == null) {
+    throw new IllegalArgumentException(
+            "Pet with id " + petId + " not found for owner with id " + ownerId + ".");
+}
+```
+
+Excerpt from `VisitController.java`, copyright 2012–2025 the original authors, licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+
+In our proposed split, Visits still needs to answer the same question. Suppose the receptionist selects pet 7 for owner 42 and submits a valid booking form. Visits asks Owners for `GET /owners/42/pets/7` and waits for a reply. This is a **synchronous call**. The outcome determines what Visits does next.
+
+| Result of the lookup | What the receptionist sees |
+| --- | --- |
+| Owners returns `200 OK` for the owner and pet together. | Visits saves the visit with the owner and pet IDs, then confirms the booking. |
+| Owners returns `404 Not Found` for that combination. | Visits asks the receptionist to check the owner and pet. No visit is saved. |
+| Owners fails to respond before the timeout. | Visits stops before it saves the visit and asks the receptionist to try again later. |
+
+The lookup tells Visits who owns the pet **at the time of the check**. The check and the later save happen in separate services. If the clinic needs to guarantee that ownership cannot change between those steps, this design alone cannot give that guarantee. That requirement would be a reason to reconsider where the booking boundary belongs. <sup><a href="#ref-1">[1]</a></sup>
+
+The clinic also has a choice about how much booking should depend on Owners being available.
+
+| Booking design | What happens when Owners is down? | What the clinic must decide |
 | --- | --- | --- |
-| Call Customers before saving | Check against an available remote answer | What if the call times out, or ownership changes just afterwards? |
-| Keep a local copy of relevant pet data | Check locally known information | How old may the information be? |
-| Accept and reconcile later | Treat booking as provisional | How is rejection or correction communicated? |
+| Ask Owners during booking, as in our example | Booking waits for the check and stops if it times out. | How long should the receptionist wait? |
+| Keep a local copy of the ownership data in Visits | Visits can check its copy, but a recent transfer may be missing. | Is it acceptable to book using older information? |
+| Accept the request and check later | Visits records a pending request. Confirmation comes after the check succeeds. | How will the receptionist learn that a request was declined? |
 
-The [SCS design](../scs-and-isa/) explores the second option. These alternatives extend the inspected method. They do not imply that microservices must always make calls that wait for an immediate response.
+The [chapter on Self-contained Systems](../scs-and-isa/) explores the second option. Owners publishes changes and Visits updates its local copy as those changes arrive. If ownership stops changing and all updates are applied correctly, the copies agree. This is **eventual consistency**. Keeping an owner ID on a historical visit serves a different purpose. It records which owner the visit was booked for. <sup><a href="#ref-1">[1]</a></sup>
 
-## Deployment independence has prerequisites
+## Combining data for the owner page
 
-In our change scenario, Visits needs a new optional field. A compatible rollout could allow old callers to omit it. Making it mandatory immediately would require coordination. Separate processes do not remove that contract decision.
+Suppose a receptionist opens an owner's page to check a pet's last visit. In our design, the browser first loads the owner and pets from Owners through the gateway. It then requests the visit history from Visits through the same gateway. If Visits is down, the owner details are still available. The history section should say “Visit history is currently unavailable.” An empty list would suggest the pet has never had a visit. Compare that with an outage in Owners during booking. A missing visit history can be shown as a gap on the page. A missing ownership check stops the receptionist from confirming the visit.
 
-Network delays and partial failures also need explicit treatment, alongside automated build and deployment processes. <sup><a href="#ref-1">[1]</a></sup> The gateway fallback makes that trade concrete. A failed Visits lookup yields a partial response instead of failing the entire Owner-details request.
+## Evaluating the trade-off
 
-Owning a persistence model is different from choosing which physical database server stores it. The source demonstrates application and model separation. Determining actual database instances or schemas requires the selected configuration profile and runtime settings. The overview diagram therefore leaves the server count open.
+For a small clinic with one development team, separate releases may solve little. Booking would now depend on a network call, and someone would have to deploy, monitor and troubleshoot three services and a gateway. Starting with a well-structured monolith gives the team time to learn which features change together before choosing service boundaries. <sup><a href="#ref-1">[1]</a></sup> <sup><a href="#ref-4">[4]</a></sup>
 
-### Keep deployment inputs reproducible
-
-The Compose file uses image names without digests, which identify exact image versions, and the Config Server refers to a separate configuration repository with `main` as its default label. <sup><a href="#ref-2">[2]</a></sup>, <sup><a href="#ref-5">[5]</a></sup> To reproduce a deployment, fix the image versions and external configuration as well as the source revision.
-
-## Evaluate the trade
-
-For a clinic platform with distinct teams and scaling needs, separate applications could be useful. In this example, however, even a simple Owner page crosses multiple applications. The product must explain a complete response, a response missing some information, and a failure.
-
-If one team owns a small application and releases its features together, these extra boundaries may offer little benefit. They become more useful when independent delivery or scaling addresses a concrete need and the team can support the additional operational work.
+The case for a split gets stronger if the Visits team regularly has to wait for an unrelated directory release, or if directory traffic repeatedly forces the clinic to scale the whole application. Those are two separate reasons to split. The booking example gives the team an equally concrete reason to keep some features together. If receptionists always need a current ownership check, separating Visits from Owners adds a dependency to every booking.
 
 ## References
 
 <a id="ref-1"></a>
-**[1]** James Lewis and Martin Fowler, “Microservices,” 25 March 2014, “Componentization via Services,” “Infrastructure Automation” and “Design for failure.” Original article. Accessed 2 November 2026.
+**[1]** James Lewis and Martin Fowler, "[Microservices](https://martinfowler.com/articles/microservices.html)," martinfowler.com, 25 March 2014, sections "Componentization via Services," "Organized around Business Capabilities," "Products not Projects," "Decentralized Governance," "Decentralized Data Management," "Infrastructure Automation" and "Design for failure." Accessed 17 November 2026.
 
 <a id="ref-2"></a>
-**[2]** Spring PetClinic Community, *Spring PetClinic Microservices*, commit `1d76b00d683e86b62867a6bf59530f8ab301244f`, docker-compose.yml. Accessed 2 November 2026.
+**[2]** Spring Projects contributors, *Spring PetClinic*, repository `spring-projects/spring-petclinic`, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, [source folder](https://github.com/spring-projects/spring-petclinic/tree/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic) with the packages `owner` and `vet`. Accessed 17 November 2026.
 
 <a id="ref-3"></a>
-**[3]** Spring PetClinic Community, same commit, `spring-petclinic-visits-service/src/main/java/org/springframework/samples/petclinic/visits/web/VisitResource.java`, `create` and `read`. Pinned source. Accessed 2 November 2026.
+**[3]** Chris Richardson, "[Pattern: API Gateway](https://microservices.io/patterns/apigateway.html)," microservices.io, sections "Solution" and "Resulting context." Accessed 17 November 2026.
 
 <a id="ref-4"></a>
-**[4]** Spring PetClinic Community, same commit, `spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/boundary/web/ApiGatewayController.java`, `getOwnerDetails`, `addVisitsToOwner`, `emptyVisitsForPets`. Pinned source. Accessed 2 November 2026.
-
-<a id="ref-5"></a>
-**[5]** Spring PetClinic Community, same commit, `spring-petclinic-config-server/src/main/resources/application.yml`. External configuration repository and default label. Accessed 2 November 2026.
+**[4]** Martin Fowler, "[Monolith First](https://martinfowler.com/bliki/MonolithFirst.html)," martinfowler.com, 3 June 2015. Accessed 17 November 2026.
 
 Return to [Modular Monolith](../modular-monolith/). Continue with [Self-contained Systems and ISA](../scs-and-isa/).

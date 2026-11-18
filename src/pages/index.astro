@@ -4,6 +4,17 @@ import { base } from '../data/navigation';
 ---
 <SiteLayout title="Software architecture">
   <p>Explore software architecture through Spring PetClinic. Compare how applications are deployed, how their code is organised, and what a change to a boundary means for the same Visit operation.</p>
-  <p>Start with <a href={`${base}/chapters/what-is-software-architecture/`}>the foundations</a>, or go directly to <a href={`${base}/chapters/visit-use-case/`}>the original Visit use case</a>.</p>
-  <p>The chapters distinguish verified PetClinic implementations from our proposed refactorings. Onion Architecture and the comprehensive comparison are planned for a later iteration.</p>
+  <p>Start with <a href={`${base}/chapters/what-is-software-architecture/`}>the foundations</a> for an introduction to both topics.</p>
+  <h2>System architecture</h2>
+  <p>Follow the same booking across four designs to see what changes when parts of the application run together or separately.</p>
+  <ul>
+    <li><a href={`${base}/chapters/monolith/`}>Start with Monolith</a></li>
+    <li><a href={`${base}/chapters/scs-and-isa/#comparing-the-system-architectures`}>Compare the four system architectures</a></li>
+  </ul>
+  <h2>Application architecture</h2>
+  <p>See where the date rule lives and how the code saves a visit in each design.</p>
+  <ul>
+    <li><a href={`${base}/chapters/visit-use-case/`}>Follow a visit through the application</a></li>
+    <li><a href={`${base}/chapters/architecture-comparison/`}>Compare Layered, Clean, Hexagonal and Onion Architecture</a></li>
+  </ul>
 </SiteLayout>

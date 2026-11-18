@@ -1,32 +1,30 @@
 ---
 layout: ../../layouts/ChapterLayout.astro
-title: 'Monolithic architecture'
+title: 'Monolith'
 ---
 
-As an application grows, it may take on several tasks with different responsibilities. The code for those tasks can be organised into separate parts while the application is still built and deployed as one unit. An application organised this way is called a monolith. When a change to one feature is delivered, it is released as part of a new version of the application. <sup><a href="#ref-1">[1]</a></sup>
+A monolith is an application that is built and deployed as a single unit. Take [Spring PetClinic](../what-is-software-architecture/#about-the-spring-petclinic-example), where receptionists use one application to book visits and look up vets. Suppose they want to record how long they expect each visit to last. Even if only the booking feature changes, the team still deploys a new version of the whole application, including the vet directory. <sup><a href="#ref-1">[1]</a></sup>
 
 ## TL;DR
 
-Spring PetClinic brings owner management, visits and vet information into one Spring Boot application. Its code can have separate responsibilities, but those features are released together. Whether this arrangement is suitable depends on how much the features need to change, run and scale independently.
+In a monolith, the team can develop features separately and deploy them together in one version of the application. When the application needs to handle more requests, the team can run several copies of it side by side. Each running copy is called an application instance and includes all the features.
 
-## One application, several responsibilities
+## Spring PetClinic as one application
 
-Suppose a receptionist uses Spring PetClinic to record a visit for a pet. The server-side views, the code handling the request and the code storing the visit all belong to the same Spring Boot application. Owner management and vet information are there too. These responsibilities have different classes and packages, but they are not deployed as separate services in the version we examine. <sup><a href="#ref-2">[2]</a></sup> <sup><a href="#ref-3">[3]</a></sup>
+Spring PetClinic, the sample application used throughout this site, shows what a shared release looks like in practice. Its code groups owners, pets and visits in the `owner` package and the vet directory in the `vet` package. The code for each feature has its own place, and the build packages both features in one Spring Boot JAR. That JAR is released as a unit. <sup><a href="#ref-2">[2]</a></sup> <sup><a href="#ref-3">[3]</a></sup>
+
+Follow a request from the browser in the diagram below to see which parts run together. Whether a receptionist opens the booking form or looks up a vet, the request reaches the same application instance. In the PostgreSQL configuration shown here, that instance reads and writes clinic records in a separate database. <sup><a href="#ref-3">[3]</a></sup>
 
 <figure class="architecture-figure">
 <div class="diagram-scroll" tabindex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
-<img src="../../diagrams/monolith-structure.svg" alt="A browser uses one Spring PetClinic application containing web controllers, views, JPA entities and repositories. The data store is shown logically, with its physical placement depending on the database configuration." style="max-width:100%;height:auto" />
+<img src="../../diagrams/monolith-structure.svg" alt="A browser sends HTTP requests to one Spring PetClinic instance containing visit booking and the vet directory. The application accesses a separate PostgreSQL database." style="max-width:100%;height:auto" />
 </div>
-<figcaption>Spring PetClinic as one application. The data store is shown logically because its physical placement depends on the database configuration. <sup><a href="#ref-2">[2]</a></sup> <sup><a href="#ref-3">[3]</a></sup></figcaption>
+<figcaption>Visit booking and the vet directory run in the same application instance and are released together. Arrows show HTTP requests and database access at runtime. Own diagram based on Spring PetClinic. <sup><a href="#ref-3">[3]</a></sup> <sup><a href="#ref-2">[2]</a></sup></figcaption>
 </figure>
 
-The box around the Spring Boot application contains its web controllers and views, data-access repositories, and the `Owner`, `Pet`, `Visit` and `Vet` classes. These classes are JPA entities mapped to stored data, rather than a separate, technology-independent business core. The arrows show selected relationships of different kinds, including HTTP from the browser, so they should not all be read as code dependencies. <sup><a href="#ref-3">[3]</a></sup>
+## How the application records a visit
 
-The data store is outside the application box to show where data belongs logically, not to prescribe a separate database process. Spring PetClinic uses an in-memory H2 database by default and provides profiles for MySQL and PostgreSQL. Either choice leaves the application's features within the same release boundary. <sup><a href="#ref-2">[2]</a></sup>
-
-## Following a visit through the code
-
-The diagram places several responsibilities inside one application. In the code for recording a visit, we can see how two of those parts work together. `VisitController` handles the web request and receives an `OwnerRepository` directly through its constructor. The original flow has no separate booking service between them. <sup><a href="#ref-3">[3]</a></sup>
+When a receptionist submits the visit form, the HTTP request in the diagram reaches `VisitController`. This is where Spring PetClinic handles the form and checks the visit date. The constructor gives the controller the `OwnerRepository` it will use to save the updated owner. <sup><a href="#ref-2">[2]</a></sup>
 
 **Original Spring PetClinic · `VisitController.java`, lines 45–49.** [View these lines in the official repository](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L45-L49).
 
@@ -38,7 +36,7 @@ public VisitController(OwnerRepository owners) {
 }
 ```
 
-Later, after the submitted visit passes validation, the controller adds it to the selected pet through the owner and asks the repository to save the owner. <sup><a href="#ref-3">[3]</a></sup>
+Once the form data passes validation, the controller records the visit in two steps. <sup><a href="#ref-2">[2]</a></sup>
 
 **Original Spring PetClinic · `VisitController.java`, lines 108–109.** [View these lines in the official repository](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L108-L109).
 
@@ -47,38 +45,40 @@ owner.addVisit(petId, visit);
 this.owners.save(owner);
 ```
 
-These excerpts show how the web controller uses data access inside the application. The diagram gives us the broader view, with Visit, Owner and Vet functionality packaged together. Moving booking rules into another class could change the internal dependency, but Visits would still be part of the monolith as long as they were released with that application. The [Layered Architecture chapter](../layered-architecture/) examines this kind of internal separation.
+The first line adds the visit to the pet in memory. The second asks the repository to save the updated owner. In the PostgreSQL setup shown above, saving that change needs the database connection shown by the SQL arrow.
 
-Both excerpts come from `VisitController.java`. Copyright 2012–2025 the original authors. Licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0). The surrounding request handling is omitted. The [Visit chapter](../visit-use-case/) follows the complete operation, including its persistence behaviour.
+Both code examples come from `VisitController.java`, copyright 2012–2025 the original authors, licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
 
-## When one feature gets busier
+Suppose a receptionist books a visit and later cannot find it on the owner's page. A developer can start Spring PetClinic locally, submit the form and follow the call from the controller to `owners.save(owner)` in a debugger. The default H2 database runs in memory, so the developer can trace the booking without starting a database server. With the PostgreSQL setup shown in the diagram, the controller still calls the repository within the application process, but saving the visit also depends on a working database connection. <sup><a href="#ref-2">[2]</a></sup> <sup><a href="#ref-3">[3]</a></sup>
 
-The shared boundary also matters when demand changes. Suppose the clinic receives many more Visit requests while use of its vet directory stays about the same. It could run another instance of the monolith, giving it another copy of the whole application. That may help if application processing is the bottleneck. A separate Visit service could instead be scaled independently, but it would introduce communication across a service boundary. The choice depends on where the load actually occurs and whether that extra complexity is worthwhile. <sup><a href="#ref-1">[1]</a></sup>
+Where should the date check go if the pet clinic later offers a second way to book a visit? Both entry points would need the same rule. The team could move the check into a booking service and have the controller call it. This would change where developers find the rule and how they reuse it. The controller and service would still be deployed together as part of the monolith. <sup><a href="#ref-1">[1]</a></sup> <sup><a href="#ref-2">[2]</a></sup> The [Visit use case](../visit-use-case/) explains how the original controller handles a booking.
 
-Running several instances also raises a practical data question. With the default in-memory H2 configuration, each instance would have its own records. To serve the same clinic data from multiple instances, we would need a suitable shared persistence setup. <sup><a href="#ref-2">[2]</a></sup>
+## What one release boundary means
 
-The same boundary affects releases. Suppose a new requirement changes both visit recording and the owner's page. Those changes can be tested and delivered in one application version. If different teams need to release these features on separate schedules, however, they must coordinate a shared deployment. <sup><a href="#ref-1">[1]</a></sup>
+**Releasing changes.** The expected visit duration from our example would also be useful on the owner's page. The team can deliver both changes in one version of the application, so receptionists can see the duration on the owner's page as soon as they start recording it on the form. If a change to the vet directory is also ready, the teams need to decide whether it belongs in that release. <sup><a href="#ref-1">[1]</a></sup>
 
-## Assessing the shared boundary
+**Handling more bookings.** If receptionists book more visits but look up vets just as often as before, the clinic can run a second instance to handle some of the requests. That instance includes the vet directory too. Both instances need access to the same booking records. With PostgreSQL, both instances can use the same database. With the default H2 setup, each instance keeps its own data in memory. <sup><a href="#ref-1">[1]</a></sup> <sup><a href="#ref-3">[3]</a></sup>
 
-In Spring PetClinic, the Visit and Owner code can collaborate without a network call between business services. This avoids a remote failure at that point in the operation. It does not remove other network communication, since the browser uses HTTP and an external database would require a connection of its own. <sup><a href="#ref-2">[2]</a></sup> <sup><a href="#ref-3">[3]</a></sup>
+**Losing an instance.** Running a second instance also changes what happens if the first one stops. With a single instance, receptionists would lose access to booking and the vet directory together. If two instances share the same PostgreSQL database and one stops, the other can still handle bookings and show the same records, as long as requests reach it and it can access the database.
 
-The limits follow from the same choice. Packages alone cannot give features independent releases, and a failure that stops an application instance affects the features it serves. If the main concern is keeping feature code better organised, a [modular monolith](../modular-monolith/) may be a useful next step. Separate services become more relevant when independent operation or deployment justifies the additional communication and failure handling. <sup><a href="#ref-1">[1]</a></sup>
+## When a monolith is a good choice
 
-When the boundaries between features are still uncertain, keeping them in one application can leave room to revise them before introducing remote calls. Fowler presents this as a reason to consider starting with a monolith, while also noting that extracting services later can be difficult. <sup><a href="#ref-4">[4]</a></sup> The useful question is whether a shared release and shared capacity still fit the application's needs.
+Early in a project, the team may still be discovering which parts of the application tend to change together. A shared deployment gives it room to adjust the boundaries around those parts as it learns. Within one application, the team can move a rule from one part of the code to another and deploy the change in one go. If the rule moves between two separate services, the team may also need to change how the services communicate and decide which version to deploy first. <sup><a href="#ref-4">[4]</a></sup>
+
+For the pet clinic, the choice depends on what is getting in the team's way. If booking improvements regularly have to wait for unrelated changes to the vet directory, independent deployments may be worth considering. <sup><a href="#ref-1">[1]</a></sup> If the release schedule works well but a change to one feature keeps breaking the other, the more useful question is which parts of the code should be allowed to depend on each other. A [modular monolith](../modular-monolith/) makes those boundaries explicit within one deployment.
 
 ## References
 
 <a id="ref-1"></a>
-**[1]** James Lewis and Martin Fowler, “[Microservices](https://martinfowler.com/articles/microservices.html),” 25 March 2014, especially “Componentization via Services” and “Design for failure.” Accessed 15 November 2026.
+**[1]** James Lewis and Martin Fowler, "[Microservices](https://martinfowler.com/articles/microservices.html)," martinfowler.com, 25 March 2014, introduction and sections "Componentization via Services" and "Design for failure." Accessed 17 November 2026.
 
 <a id="ref-2"></a>
-**[2]** Spring Projects contributors, *Spring PetClinic*, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, [README.md](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/README.md), especially “Database configuration.” Accessed 15 November 2026.
+**[2]** Spring Projects contributors, *Spring PetClinic*, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, [source folder](https://github.com/spring-projects/spring-petclinic/tree/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic) with the packages `owner`, `vet`, `system` and `model`, [pom.xml](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/pom.xml) and [VisitController.java](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L95-L109) for date validation and saving. The code excerpts above link to the exact lines. Accessed 17 November 2026.
 
 <a id="ref-3"></a>
-**[3]** Spring Projects contributors, *Spring PetClinic*, same commit, [PetClinicApplication.java](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/PetClinicApplication.java), [pom.xml](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/pom.xml), [VisitController.java](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java), [OwnerRepository.java](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/OwnerRepository.java), [Owner.java](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/Owner.java), [Pet.java](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/Pet.java) and [Vet.java](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/vet/Vet.java). The code excerpts above link to the exact lines used. Accessed 15 November 2026.
+**[3]** Spring Projects contributors, *Spring PetClinic*, repository `spring-projects/spring-petclinic`, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, README sections on [running the application locally](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/README.md#L14-L36), [building and running the container image](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/README.md#L43-L56) and [database configuration](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/README.md#L62-L70). Accessed 17 November 2026.
 
 <a id="ref-4"></a>
-**[4]** Martin Fowler, “[Monolith First](https://martinfowler.com/bliki/MonolithFirst.html),” 3 June 2015, discussion of uncertain service boundaries and the difficulty of later extraction. Accessed 15 November 2026.
+**[4]** Martin Fowler, "[Monolith First](https://martinfowler.com/bliki/MonolithFirst.html)," martinfowler.com, 3 June 2015. Accessed 17 November 2026.
 
 Return to [System vs. application architecture](../system-vs-application-architecture/). Continue with [Modular Monolith](../modular-monolith/).

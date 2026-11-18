@@ -1,32 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="960" height="440" viewBox="0 0 960 440" role="img" aria-labelledby="title desc">
-<title id="title">Our Layered design separates responsibilities</title><desc id="desc">Controller uses booking service, which uses repository and independent policy. JPA model is shared.</desc>
-<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#222"/></marker></defs>
-<rect width="960" height="440" fill="white"/>
-<g font-family="Arial, sans-serif" font-size="16" fill="#111">
-<text x="24" y="30" font-size="20" font-weight="bold">Our Layered design separates responsibilities</text>
-<rect x="25" y="85" width="250" height="80" rx="4" fill="#f7f7f7" stroke="#333"/>
-<text x="150.0" y="111" text-anchor="middle">Presentation</text>
-<text x="150.0" y="134" text-anchor="middle">VisitController</text>
-<rect x="355" y="85" width="260" height="80" rx="4" fill="#f7f7f7" stroke="#333"/>
-<text x="485.0" y="111" text-anchor="middle">Application service</text>
-<text x="485.0" y="134" text-anchor="middle">VisitBookingService</text>
-<rect x="695" y="85" width="240" height="80" rx="4" fill="#f7f7f7" stroke="#333"/>
-<text x="815.0" y="111" text-anchor="middle">Data access</text>
-<text x="815.0" y="134" text-anchor="middle">OwnerRepository</text>
-<rect x="355" y="270" width="260" height="80" rx="4" fill="#f7f7f7" stroke="#333"/>
-<text x="485.0" y="296" text-anchor="middle">VisitRules</text>
-<text x="485.0" y="319" text-anchor="middle">Independent policy</text>
-<rect x="695" y="270" width="240" height="80" rx="4" fill="#f7f7f7" stroke="#333"/>
-<text x="815.0" y="296" text-anchor="middle">Owner / Pet / Visit</text>
-<text x="815.0" y="319" text-anchor="middle">Shared JPA model</text>
-<path d="M275 125 L355 125" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)"/>
-<text x="315.0" y="115.0" text-anchor="middle" font-size="14">uses</text>
-<path d="M615 125 L695 125" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)"/>
-<text x="655.0" y="115.0" text-anchor="middle" font-size="14">uses</text>
-<path d="M485 165 L485 270" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)"/>
-<text x="485.0" y="207.5" text-anchor="middle" font-size="14">uses</text>
-<path d="M815 165 L815 270" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)"/>
-<text x="815.0" y="207.5" text-anchor="middle" font-size="14">uses</text>
-<text x="24" y="396" font-size="14">Arrows show selected type references. Controller and service also use shared model types.</text>
-<text x="24" y="418" font-size="14">Shared model types make this a relaxed layered design, not strict adjacent-layer access.</text>
-</g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="320" viewBox="0 0 960 320" role="img" aria-labelledby="title desc">
+  <title id="title">Layered variant: booking through a service layer</title>
+  <desc id="desc">LayeredVisitController in the presentation layer uses VisitService in the business layer. VisitService uses OwnerRepository in the data access layer. The controller also holds the repository for loading pet and owner details through VisitFormModel.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#24364a"/>
+    </marker>
+  </defs>
+  <rect width="960" height="320" fill="white"/>
+  <g font-family="Arial, sans-serif" fill="#172638">
+    <text x="24" y="32" font-size="20" font-weight="bold">Layered variant: booking through a service layer</text>
+
+    <text x="160" y="78" font-size="14" text-anchor="middle" font-style="italic">Presentation layer</text>
+    <text x="480" y="78" font-size="14" text-anchor="middle" font-style="italic">Business layer</text>
+    <text x="800" y="78" font-size="14" text-anchor="middle" font-style="italic">Data access layer</text>
+
+    <rect x="25" y="90" width="270" height="90" rx="5" fill="#eaf2fb" stroke="#42566b" stroke-width="1.5"/>
+    <text x="160" y="128" font-size="16" text-anchor="middle" font-weight="bold">LayeredVisitController</text>
+    <text x="160" y="152" font-size="14" text-anchor="middle">reads the form, shows errors</text>
+
+    <rect x="345" y="90" width="270" height="90" rx="5" fill="#fff5dc" stroke="#42566b" stroke-width="1.5"/>
+    <text x="480" y="128" font-size="16" text-anchor="middle" font-weight="bold">VisitService</text>
+    <text x="480" y="152" font-size="14" text-anchor="middle">checks the date and pet</text>
+
+    <rect x="665" y="90" width="270" height="90" rx="5" fill="#eaf2fb" stroke="#42566b" stroke-width="1.5"/>
+    <text x="800" y="128" font-size="16" text-anchor="middle" font-weight="bold">OwnerRepository</text>
+    <text x="800" y="152" font-size="14" text-anchor="middle">loads and saves owners</text>
+
+    <g fill="none" stroke="#24364a" stroke-width="1.6" marker-end="url(#arrow)">
+      <path d="M295 135 H345"/>
+      <path d="M615 135 H665"/>
+      <path d="M160 180 V236 H800 V181" stroke-dasharray="7 5"/>
+    </g>
+    <text x="320" y="125" font-size="13" text-anchor="middle">uses</text>
+    <text x="640" y="125" font-size="13" text-anchor="middle">uses</text>
+
+    <text x="480" y="222" font-size="15" text-anchor="middle">passes the repository to VisitFormModel for form display</text>
+    <text x="24" y="289" font-size="14">Solid arrows show booking dependencies. The dashed arrow shows the additional dependency for displaying the form.</text>
+  </g>
+</svg>

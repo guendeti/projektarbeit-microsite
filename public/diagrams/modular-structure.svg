@@ -1,28 +1,42 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="960" height="440" viewBox="0 0 960 440" role="img" aria-labelledby="title desc">
-<title id="title">Proposed modular monolith</title><desc id="desc">Visits calls the public owners PetLookup API. Modules share deployment and technical database infrastructure.</desc>
-<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#222"/></marker></defs>
-<rect width="960" height="440" fill="white"/>
-<g font-family="Arial, sans-serif" font-size="16" fill="#111">
-<text x="24" y="30" font-size="20" font-weight="bold">Proposed modular monolith</text>
-<rect x="25" y="90" width="270" height="100" rx="4" fill="#f7f7f7" stroke="#333"/>
-<text x="160.0" y="116" text-anchor="middle">owners</text>
-<text x="160.0" y="139" text-anchor="middle">Public PetLookup API</text>
-<text x="160.0" y="162" text-anchor="middle">Internal data access</text>
-<rect x="365" y="90" width="250" height="100" rx="4" fill="#f7f7f7" stroke="#333"/>
-<text x="490.0" y="116" text-anchor="middle">visits</text>
-<text x="490.0" y="139" text-anchor="middle">Visit processing</text>
-<text x="490.0" y="162" text-anchor="middle">Own VisitRepository</text>
-<rect x="685" y="90" width="250" height="100" rx="4" fill="#f7f7f7" stroke="#333"/>
-<text x="810.0" y="116" text-anchor="middle">vets</text>
-<text x="810.0" y="139" text-anchor="middle">Vet management</text>
-<text x="810.0" y="162" text-anchor="middle">Internal data access</text>
-<rect x="100" y="310" width="760" height="65" rx="4" fill="#f7f7f7" stroke="#333"/>
-<text x="480.0" y="336" text-anchor="middle">Shared database infrastructure with data access controlled by each module</text>
-<path d="M365 140 L295 140" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)"/>
-<text x="330.0" y="130.0" text-anchor="middle" font-size="14">call</text>
-<path d="M160 190 L160 310" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)"/>
-<path d="M490 190 L490 310" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)"/>
-<path d="M810 190 L810 310" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)"/>
-<text x="24" y="396" font-size="14">All three modules belong to one deployment unit.</text>
-<text x="24" y="418" font-size="14">Visits calls Owners. Database access rules need their own enforcement.</text>
-</g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="470" viewBox="0 0 960 470" role="img" aria-labelledby="title desc">
+  <title id="title">Package dependencies in Spring PetClinic</title>
+  <desc id="desc">Four direct subpackages are shown. The owner module holds owners, pets and visits. The vet module holds the vet directory. Both depend on the model module with shared base classes. The system package imports none of the other three.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#24364a"/>
+    </marker>
+  </defs>
+  <rect width="960" height="470" fill="white"/>
+  <g font-family="Arial, sans-serif" fill="#172638">
+    <text x="24" y="32" font-size="20" font-weight="bold">Package dependencies in Spring PetClinic</text>
+
+    <rect x="20" y="55" width="920" height="335" rx="6" fill="#ffffff" stroke="#42566b" stroke-width="2"/>
+    <text x="40" y="82" font-size="16" font-weight="bold">Original Spring PetClinic application</text>
+
+    <rect x="45" y="100" width="270" height="140" rx="5" fill="#fff5dc" stroke="#42566b" stroke-width="1.5"/>
+    <text x="180" y="130" font-size="16" text-anchor="middle" font-weight="bold">owner</text>
+    <text x="180" y="156" font-size="14" text-anchor="middle">Owner, Pet, Visit</text>
+    <text x="180" y="178" font-size="14" text-anchor="middle">Visit booking</text>
+
+    <rect x="345" y="100" width="270" height="140" rx="5" fill="#fff5dc" stroke="#42566b" stroke-width="1.5"/>
+    <text x="480" y="130" font-size="16" text-anchor="middle" font-weight="bold">vet</text>
+    <text x="480" y="156" font-size="14" text-anchor="middle">Vet directory</text>
+
+    <rect x="645" y="100" width="270" height="140" rx="5" fill="#f7f7f7" stroke="#42566b" stroke-width="1.5"/>
+    <text x="780" y="130" font-size="16" text-anchor="middle" font-weight="bold">system</text>
+    <text x="780" y="156" font-size="14" text-anchor="middle">Web configuration and caching</text>
+    <text x="780" y="178" font-size="14" text-anchor="middle">Welcome and error handling</text>
+
+    <rect x="195" y="300" width="270" height="70" rx="5" fill="#f7f7f7" stroke="#42566b" stroke-width="1.5"/>
+    <text x="330" y="328" font-size="16" text-anchor="middle" font-weight="bold">model</text>
+    <text x="330" y="352" font-size="14" text-anchor="middle">BaseEntity, NamedEntity, Person</text>
+
+    <g fill="none" stroke="#24364a" stroke-width="1.6" marker-end="url(#arrow)">
+      <path d="M180 240 L280 300"/>
+      <path d="M480 240 L380 300"/>
+    </g>
+
+    <text x="24" y="422" font-size="14">Each arrow points from a package to another package it imports.</text>
+    <text x="24" y="444" font-size="14">Both owner and vet use shared model classes. Neither imports the other.</text>
+  </g>
+</svg>

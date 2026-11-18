@@ -3,125 +3,113 @@ layout: ../../layouts/ChapterLayout.astro
 title: 'Self-contained Systems and ISA'
 ---
 
-A feature may still be unavailable during another system's outage even when it has its own deployment. Self-contained Systems address this by giving a business area its own user interface, logic and data, so it can fulfil its main use cases independently. <sup><a href="#ref-1">[1]</a></sup>
+Suppose a receptionist opens the booking form just as the system that manages owner records goes offline. Can the pet clinic still book the visit? We use [Spring PetClinic](../what-is-software-architecture/#about-the-spring-petclinic-example) to explore that question. In the [microservices example](../microservices/), Visits asks Owners to check the pet during every booking. A **self-contained system (SCS)** takes a different approach. One team owns a business area, from its web pages to its data, so the system can do its main work even when another system is down. <sup><a href="#ref-1">[1]</a></sup>
 
 ## TL;DR
 
-Self-contained Systems, or SCS, are web applications that own their user interface, logic and data and can perform their main tasks independently. Independent Systems Architecture, or ISA, gives broader principles for independent systems. Our PetClinic design uses local pet information so booking does not wait for the owner system. The price is explicit rules for stale data, event recovery and authorisation.
+In our proposed design, Owners keeps the clinic's owner and pet records. Visits keeps the few facts it needs for booking and receives updates in the background. A receptionist can open Visits directly and book a known pet while Owners is down. The price is visible at the desk too. A pet registered just before the outage may still be missing from the booking form.
 
-## Different questions, related ideas
+## What makes a system self-contained
 
-An SCS owns its user interface, logic and data and should fulfil its primary use cases without other systems being available. Communication should be decoupled in time wherever possible. A service API is optional. An API without a user-facing interface does not meet the UI requirement. SCS also discourages shared business logic and unnecessary shared infrastructure. <sup><a href="#ref-1">[1]</a></sup>
+Consider what the Visits team needs to change when the clinic adds an expected visit duration. The team owns the form where the receptionist enters the duration, the rule that checks it and the visit record where it is saved. These belong together because they serve one task. The team can release the change itself. It can also provide an API for a mobile client, but receptionists can already use Visits through its own pages. <sup><a href="#ref-1">[1]</a></sup>
 
-ISA calls decisions shared across the system macroarchitecture. Decisions made inside one module belong to its microarchitecture. Its principles cover interfaces, separate runtime units, standardised integration and metadata, independent delivery, operations and resilience. Principles 7 and 8 use “should”, while the others use “must.” Systems may call each other and wait for a response, exchange messages for later processing, or connect through their user interfaces. <sup><a href="#ref-2">[2]</a></sup>
+Independence also depends on what the systems share. The booking rules belong in Visits. Owners can link to the booking form without keeping a second implementation of those rules. Technical libraries such as database drivers can still be shared. Two systems could even use private schemas on the same database server to save money, although a failure of that server would then affect both. <sup><a href="#ref-1">[1]</a></sup>
 
-Thus an API-only system could follow ISA without being an SCS. Neither term means “microservices, but larger.” The concepts express overlapping concerns rather than stages in a mandatory evolution.
+## How SCS relate to microservices
 
-## Our PetClinic design
+Both approaches support independent releases. A microservice may provide an API to a separate front end. An SCS includes the web interface for its business area and favours links or other forms of UI integration. It can even use several microservices internally. Both approaches can use messages. What matters for booking is whether Visits must wait for another system to answer **while the receptionist is submitting the form**. <sup><a href="#ref-1">[1]</a></sup> <sup><a href="#ref-2">[2]</a></sup>
 
-The following proposal applies SCS principles to PetClinic. It introduces new system boundaries and events rather than describing an existing PetClinic variant. Owner, Pet, Visit and Vet come from the official PetClinic model. <sup><a href="#ref-3">[3]</a></sup>
+## Booking a visit in the pet clinic
 
-| Proposed system | Owns | Local information obtained from elsewhere |
-| --- | --- | --- |
-| Owners and Pets | Owner/Pet records and their management UI | Optional visit summaries |
-| Visits | Booking UI, Visit records and history | Pet identity, owner relationship and active status |
-| Vets | Vet records, specialties and UI | Only what its own future use cases require |
+The official Spring PetClinic already has an **Add Visit** link on the owner page. Its target includes the IDs of both the owner and the pet. In the original application, the same application serves the owner page and the booking form. <sup><a href="#ref-3">[3]</a></sup>
+
+In our proposed design, there are three web applications. Owners manages owners and pets, Visits manages bookings, and Vets manages the vet directory. Follow the two arrows between Owners and Visits in the diagram. The receptionist follows the solid arrow by clicking **Add Visit**. The dashed arrow carries changes to pet records independently of that click.
 
 <figure class="architecture-figure">
 <div class="diagram-scroll" tabindex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
-<img src="../../diagrams/scs-structure.svg" alt="Proposed Owners and Pets, Visits, and Vets SCSs each own UI, logic and data. Owners and Pets provides navigation and deferred pet events to Visits." style="max-width:100%;height:auto" />
+<img src="../../diagrams/scs-structure.svg" alt="Owners, Visits and Vets each own their pages, rules and records. A browser link opens Visits from Owners. Separately, Owners sends pet updates to a local copy in Visits." style="max-width:100%;height:auto" />
 </div>
-<figcaption>Our SCS design. A browser link changes the user's destination. Events delivered later supply local data. Neither arrow grants direct access to another system's tables.</figcaption>
+<figcaption>Proposed SCS design for the pet clinic. Visits can use a pet update for many later bookings. Clicking the link does not trigger an update. Own diagram based on the SCS characteristics. <sup><a href="#ref-1">[1]</a></sup></figcaption>
 </figure>
 
-The three-way split is a design choice, not a requirement of SCS. For one small practice, a separate Vets web system might add little value. Grouping more responsibilities in fewer systems may better fit that setting.
+For example, the link could open `/visits/new?ownerId=42&petId=7`. Visits renders the form and checks the selected owner and pet against its own data when the receptionist submits it. The IDs in the link identify the selection. A receptionist who opens Visits directly can enter a known owner number and pet number. Visits checks the pair against its local records. This second route matters during an outage because a link on an unavailable owner page cannot help someone reach the form. In this design, the owner page could also link to the pet's visit history in Visits, where the receptionist could see earlier visits for that pet.
 
-### Navigation conveys context, not permission
+### What the booking form knows
 
-A link from a pet page could open `/visits/new?petId=34`. Visits renders its own form and checks the user's permission. The ID is context, not proof of ownership or authorisation. Shared sign-in could help the user move between systems, but each system still needs its own decision about allowed operations.
-
-Visits keeps a local read model, also called a projection. This is a copy of the information it needs for booking, rather than a shared internal table. An event could update that copy.
+Suppose Owners has just assigned pet 7 to owner 42. The example message below carries the current booking details for that pet. The IDs match the link above. This is an example contract for our proposed design.
 
 ```json
 {
-  "eventId": "pet-34-v7",
   "type": "PetChanged",
-  "petId": 34,
+  "petId": 7,
+  "ownerId": 42,
   "version": 7,
-  "ownerId": 12,
-  "status": "active"
+  "active": true
 }
 ```
 
-The event ID helps detect duplicate messages. The version helps decide whether an update is older than data already stored. Neither field alone guarantees delivery, ordering or correct processing. We would need to define version scope, initial data transfer and recovery.
+In this design, Visits accepts new bookings only for pets marked as active in its local copy. Here, `active` is `true`, so pet 7 can be booked for owner 42.
 
-## Booking with local knowledge
+Owners assigns a higher version each time it changes that pet's record. Visits stores the owner ID, active status and version together. If version 7 arrives twice, or version 6 arrives after version 7, Visits keeps version 7. This works because each message contains all the fields Visits needs for that pet. To start with a complete list, Visits also needs the existing pets, for example from an initial copy followed by all later updates.
 
-Visits validates input and checks its locally known Pet information and permissions. If the pet is known and usable, it saves the Visit together with an outgoing event record in a local transaction. After a successful commit, it can confirm the booking while a separate relay publishes the event. The response does not wait for delivery or remote processing.
+A version number cannot deliver a missing message. One way to handle a crash in Owners is a **transactional outbox**. Owners saves the pet change and the outgoing event in the same database transaction. A background process can then send the event, retrying if delivery fails. A retry can produce a duplicate, which is why Visits checks the version as it applies the update. <sup><a href="#ref-4">[4]</a></sup>
 
-<figure class="architecture-figure">
-<div class="diagram-scroll" tabindex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
-<img src="../../diagrams/scs-visit-flow.svg" alt="Proposed booking checks local pet data, commits Visit and outbox together, returns confirmation and delivers the event later." style="max-width:100%;height:auto" />
-</div>
-<figcaption>Proposed booking flow. Response handling and event publication both follow the commit and can proceed independently. Their relative completion order is not guaranteed.</figcaption>
-</figure>
+### What happens when the copy is behind?
 
-The Transactional Outbox pattern stores a data change and the intent to send a message in one database transaction. A relay sends the stored messages later. It may send duplicates, so processing must be idempotent, meaning that processing the same event again does not repeat its effect. <sup><a href="#ref-4">[4]</a></sup> It is one possible implementation, not a requirement of every SCS.
+| What has happened | What the receptionist can do in this design |
+| --- | --- |
+| Owners is down. Visits already knows the selected owner and pet, and its copy marks the pet as active. | Open Visits directly and book using the local record. |
+| Owners registered a new pet, but Visits has not received the update. | Try the numbers again once the update arrives. Visits cannot confirm a booking for an unknown pet. |
+| Owners transferred the pet from owner 42 to owner 56. Visits still has version 7. | A booking for owner 42 can still pass the local check. Once the transfer arrives, new bookings use owner 56. Existing visits keep the owner recorded at booking. |
 
-A newly created pet may not yet exist in the local projection. Our policy is to defer booking for unknown pets and explain the pending synchronisation. For known pets, booking can continue during a temporary Owners outage. That is the specific autonomy this design provides.
+That last case is the decision to discuss with the clinic. If it accepts a delay in ownership updates, Visits can keep booking through an Owners outage. If every booking must reflect the latest transfer, a local copy alone cannot meet the rule. The team could keep the ownership change and booking check inside the same transaction boundary. Simply sending messages more often would shorten the usual delay without removing it.
 
-### When a pet changes owner
+## Where Independent Systems Architecture fits
 
-Suppose Pet 34 moves from Owner 12 to Owner 19 while Visits is disconnected. Which owner should a new booking name? Which owner should a historical Visit retain?
+**Independent Systems Architecture (ISA)** describes practices for designing and running independent modules, including microservices and SCS. Take the `version` field above. Both teams must agree on its meaning or Visits could apply an old update. That agreement belongs to the **macro architecture**, the decisions shared across modules. How Visits stores the version is part of its **micro architecture**, the decisions the Visits team can make locally. <sup><a href="#ref-5">[5]</a></sup>
 
-These are distinct questions in our scenario. Overwriting every old record with the newest owner could alter the interpretation of history. Keeping stale permissions forever could permit an inappropriate operation. The event format cannot decide either policy.
+The nine ISA principles below use *must* for requirements and *should* where the authors allow exceptions. The clinic examples illustrate what each principle means in practice. <sup><a href="#ref-5">[5]</a></sup>
 
-Before implementation, we need to agree on several rules.
+| ISA principle | Strength | Example in the pet clinic |
+| --- | --- | --- |
+| 1. Access modules through their interfaces. | Must | Visits receives published pet updates. Owners keeps its tables private. |
+| 2. Separate shared and local design decisions. | Must | Both teams agree on the event fields. Each chooses its own database layout. |
+| 3. Run modules separately. | Must | Owners, Visits and Vets run in separate processes and can be released separately. |
+| 4. Agree on a limited set of ways to communicate. | Must | The teams use web links for navigation and one messaging protocol for updates. |
+| 5. Agree on metadata. | Must | Each system recognises the same information about the signed-in receptionist. |
+| 6. Give each module its own continuous delivery pipeline. | Must | Visits can build, test and release a new booking form on its own. |
+| 7. Use common operating practices. | Should | The teams can find a failed update through familiar logs and alerts. |
+| 8. Apply shared standards at the interface. | Should | The event format is agreed across teams. Each can choose its own JSON library. |
+| 9. Design for failures and recovery. | Must | Visits can use local records during an outage and resume on another host after a crash with its saved bookings intact. |
 
-- Which information is historical and which must reflect current ownership.
-- How long local permission information may be trusted.
-- When booking is provisional, deferred or rejected.
-- How missed changes are detected and projections rebuilt.
+## Comparing the system architectures
 
-Eventual consistency allows copies to differ temporarily and converge after successful updates. Waiting alone does not repair a missing update. Our design still needs repeatable initial loading, retries, duplicate handling and a way to find and repair gaps. More restrictive freshness requirements can reduce the independence of booking.
+The table compares the four **pet clinic designs** used in this part of the site. For example, both distributed designs give teams their own pages. The clearest difference between them shows up when the receptionist clicks **Book**. <sup><a href="#ref-1">[1]</a></sup> <sup><a href="#ref-2">[2]</a></sup>
 
-## Apply ISA to this design
+| | [Monolith](../monolith/) | [Modular monolith](../modular-monolith/) | [Microservices example](../microservices/) | [SCS example](#booking-a-visit-in-the-pet-clinic) |
+| --- | --- | --- | --- | --- |
+| What gets released together? | The whole clinic application | The whole clinic application, including its modules | Each service has its own release | Each web application has its own release |
+| Where is ownership checked? | In the clinic application | In the same process, using the owner module | Visits calls Owners and waits | Visits checks its local copy |
+| What if owner data is unavailable? | Booking needs the application's owner records | The module boundary still leaves booking dependent on those records | A timeout stops the booking | Known pets can still be booked using the last update |
+| What must the team look after? | One release for all features | The interfaces between modules | Network calls and failures during a request | Delivery of updates and the effect of older data on bookings |
 
-Our shared rules would define identifiers, event contracts, identity metadata such as authentication tokens, and supported ways to communicate. Each SCS would own its delivery pipeline, the automated steps that build, check and release it, and its internal implementation. Operational standards would cover logging, tracing, configuration and recovery, with justified exceptions where appropriate. These choices apply ISA's distinction between shared and local decisions. <sup><a href="#ref-2">[2]</a></sup>
-
-For example, agreeing on a message schema does not require every system to use the same internal layering. A Visits SCS could use Clean Architecture while another system uses a simpler arrangement. The [application chapters](../visit-use-case/) examine those internal choices.
-
-## Comparing this with the Microservices example
-
-In the community implementation analysed in the preceding chapter, Visit creation contains no Customers membership call. A separate gateway read combines Customers and Visits data. Our SCS design adds a local Pet projection. The comparison concerns these two examples, not a universal division between synchronous Microservices and asynchronous SCS.
-
-Microservices can also use events, local projections and their own UI. Our SCS design specifically emphasises end-to-end responsibility and booking that does not wait for a remote pet lookup. The distinction is an explicit requirement and contract, not a ban on a technology.
-
-## Compare system boundaries
-
-The table compares the responsibilities and behaviour of the four PetClinic designs.
-
-| Example | Deployment | Booking collaboration | Data consistency question |
-| --- | --- | --- | --- |
-| Official monolith | Shared application | Local controller/model/repository calls | Actual transaction boundary and entity relationships |
-| Our modular monolith | Shared application | Direct public module API | Check-then-write and module ownership |
-| Community Microservices | Separate applications | Visits stores a pet ID without a Customers call in the inspected method | The identifier alone does not establish owner-pet membership |
-| Our SCS proposal | Separate web applications | Local pet projection and deferred integration | Staleness, recovery and historical meaning |
-
-For a small clinic, the extra UI, integration and operational responsibilities may outweigh the benefit. Separate teams with a concrete need for available local workflows could justify them. Before choosing this design, define which operations must remain available during an outage and how much data staleness each operation can accept.
+These choices describe where the clinic draws boundaries between running applications. Inside any one of them, the team still has to decide where to put the controller, booking rules and database access. The [Visit use case](../visit-use-case/) follows those decisions inside the application.
 
 ## References
 
 <a id="ref-1"></a>
-**[1]** INNOQ and the SCS community, *Self-contained Systems*, n.d., “Characteristics.” Original description, FAQ and comparison with Microservices. Accessed 2 November 2026.
+**[1]** INNOQ and the SCS community, “[Self-contained Systems](https://scs-architecture.org/),” sections “Characteristics” and “The Idea,” and “[SCS vs. Microservices](https://scs-architecture.org/vs-ms.html).” Accessed 18 November 2026.
 
 <a id="ref-2"></a>
-**[2]** ISA contributors, *Independent Systems Architecture*, n.d., principles 1–9 and definitions of “must” and “should.” Original principles. Accessed 2 November 2026.
+**[2]** James Lewis and Martin Fowler, “[Microservices](https://martinfowler.com/articles/microservices.html),” 25 March 2014, sections “Componentization via Services” and “Organized around Business Capabilities.” Accessed 18 November 2026.
 
 <a id="ref-3"></a>
-**[3]** Spring Projects contributors, *Spring PetClinic*, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, `src/main/resources/db/h2/schema.sql`. Pinned model/schema. Accessed 2 November 2026.
+**[3]** Spring Projects contributors, *Spring PetClinic*, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, [owner page template, line 73](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/resources/templates/owners/ownerDetails.html#L73). Accessed 18 November 2026.
 
 <a id="ref-4"></a>
-**[4]** Chris Richardson, “Pattern: Transactional outbox,” *Microservices.io*, n.d. Pattern and delivery caveats. Accessed 2 November 2026.
+**[4]** Chris Richardson, “[Pattern: Transactional outbox](https://microservices.io/patterns/data/transactional-outbox.html),” sections “Solution” and “Resulting context.” Accessed 18 November 2026.
 
-Return to [Microservices](../microservices/). Continue with [The original Visit use case](../visit-use-case/).
+<a id="ref-5"></a>
+**[5]** ISA contributors, “[Independent Systems Architecture](https://isa-principles.org/),” sections “Terms” and “Principles.” Accessed 18 November 2026.
+
+Return to [Microservices](../microservices/). Continue with [The Visit use case](../visit-use-case/).
