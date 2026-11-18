@@ -26,7 +26,7 @@ Follow a request from the browser in the diagram below to see which parts run to
 
 When a receptionist submits the visit form, the HTTP request in the diagram reaches `VisitController`. This is where Spring PetClinic handles the form and checks the visit date. The constructor gives the controller the `OwnerRepository` it will use to save the updated owner. <sup><a href="#ref-2">[2]</a></sup>
 
-**Original Spring PetClinic · `VisitController.java`, lines 45–49.** [View these lines in the official repository](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L45-L49).
+**Original Spring PetClinic · <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L45-L49" target="_blank" rel="noopener noreferrer"><code>VisitController.java</code></a>**
 
 ```java
 private final OwnerRepository owners;
@@ -38,7 +38,7 @@ public VisitController(OwnerRepository owners) {
 
 Once the form data passes validation, the controller records the visit in two steps. <sup><a href="#ref-2">[2]</a></sup>
 
-**Original Spring PetClinic · `VisitController.java`, lines 108–109.** [View these lines in the official repository](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L108-L109).
+**Original Spring PetClinic · <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L108-L109" target="_blank" rel="noopener noreferrer"><code>VisitController.java</code></a>**
 
 ```java
 owner.addVisit(petId, visit);
@@ -73,10 +73,10 @@ For the pet clinic, the choice depends on what is getting in the team's way. If 
 **[1]** James Lewis and Martin Fowler, "[Microservices](https://martinfowler.com/articles/microservices.html)," martinfowler.com, 25 March 2014, introduction and sections "Componentization via Services" and "Design for failure." Accessed 17 November 2026.
 
 <a id="ref-2"></a>
-**[2]** Spring Projects contributors, *Spring PetClinic*, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, [source folder](https://github.com/spring-projects/spring-petclinic/tree/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic) with the packages `owner`, `vet`, `system` and `model`, [pom.xml](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/pom.xml) and [VisitController.java](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L95-L109) for date validation and saving. The code excerpts above link to the exact lines. Accessed 17 November 2026.
+**[2]** Spring Projects contributors, *Spring PetClinic*, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, <a href="https://github.com/guendeti/spring-petclinic/tree/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic" target="_blank" rel="noopener noreferrer">source folder</a> with the packages `owner`, `vet`, `system` and `model`, <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/pom.xml" target="_blank" rel="noopener noreferrer">pom.xml</a> and <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L95-L109" target="_blank" rel="noopener noreferrer">VisitController.java</a> for date validation and saving. The code excerpts above link to the exact lines. Accessed 17 November 2026.
 
 <a id="ref-3"></a>
-**[3]** Spring Projects contributors, *Spring PetClinic*, repository `spring-projects/spring-petclinic`, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, README sections on [running the application locally](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/README.md#L14-L36), [building and running the container image](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/README.md#L43-L56) and [database configuration](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/README.md#L62-L70). Accessed 17 November 2026.
+**[3]** Spring Projects contributors, *Spring PetClinic*, repository `spring-projects/spring-petclinic`, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, README sections on <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/README.md#L14-L36" target="_blank" rel="noopener noreferrer">running the application locally</a>, <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/README.md#L43-L56" target="_blank" rel="noopener noreferrer">building and running the container image</a> and <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/README.md#L62-L70" target="_blank" rel="noopener noreferrer">database configuration</a>. Accessed 17 November 2026.
 
 <a id="ref-4"></a>
 **[4]** Martin Fowler, "[Monolith First](https://martinfowler.com/bliki/MonolithFirst.html)," martinfowler.com, 3 June 2015. Accessed 17 November 2026.

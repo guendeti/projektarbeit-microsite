@@ -47,7 +47,7 @@ Look first at the dashed arrow from `JpaVisitStore` to `VisitStore`. The adapter
 
 The **input port** describes the operation a caller can ask the application to perform. A receptionist's form supplies two IDs, a date and a description. An import job could supply the same values.
 
-**Our addition · `BookVisitUseCase.java`, lines 24–28.** Local source `src/main/java/org/springframework/samples/petclinic/visits/clean/core/BookVisitUseCase.java`.
+**Our refactoring · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/clean/core/BookVisitUseCase.java#L20-L24" target="_blank" rel="noopener noreferrer"><code>BookVisitUseCase.java</code></a>**
 
 ```java
 public interface BookVisitUseCase {
@@ -59,7 +59,7 @@ public interface BookVisitUseCase {
 
 The **output port** in our example describes what the use case needs from storage. Read the two methods as a question and an action. The first asks whether this owner has this pet. The second records a visit once the checks pass.
 
-**Our addition · `VisitStore.java`, lines 24–30.** Local source `src/main/java/org/springframework/samples/petclinic/visits/clean/core/VisitStore.java`.
+**Our refactoring · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/clean/core/VisitStore.java#L20-L26" target="_blank" rel="noopener noreferrer"><code>VisitStore.java</code></a>**
 
 ```java
 public interface VisitStore {
@@ -77,7 +77,7 @@ When the use case asks whether the pet belongs to the owner, it receives a boole
 
 An **interactor** is the class that carries out a use case. In the code below, follow what happens first for today's date, then for tomorrow's.
 
-**Our addition · `BookVisitInteractor.java`, lines 24–43.** Local source `src/main/java/org/springframework/samples/petclinic/visits/clean/core/BookVisitInteractor.java`.
+**Our refactoring · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/clean/core/BookVisitInteractor.java#L20-L39" target="_blank" rel="noopener noreferrer"><code>BookVisitInteractor.java</code></a>**
 
 ```java
 public class BookVisitInteractor implements BookVisitUseCase {
@@ -112,7 +112,7 @@ The description follows a different path. The web adapter checks that it contain
 
 For a valid booking, the following adapter supplies the two operations the interactor calls.
 
-**Our addition · `JpaVisitStore.java`, lines 37–50.** Local source `src/main/java/org/springframework/samples/petclinic/visits/clean/persistence/JpaVisitStore.java`.
+**Our refactoring · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/clean/persistence/JpaVisitStore.java#L33-L46" target="_blank" rel="noopener noreferrer"><code>JpaVisitStore.java</code></a>**
 
 ```java
 @Override
@@ -135,7 +135,7 @@ The first lookup returns `false` both when the owner is missing and when that ow
 
 The configuration below makes the choice of store explicit. Spring supplies the repository. The configuration wraps it in a `JpaVisitStore` and gives that adapter to the interactor.
 
-**Our addition · `CleanVisitConfiguration.java`, lines 32–35.** Local source `src/main/java/org/springframework/samples/petclinic/visits/clean/config/CleanVisitConfiguration.java`.
+**Our refactoring · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/clean/config/CleanVisitConfiguration.java#L28-L31" target="_blank" rel="noopener noreferrer"><code>CleanVisitConfiguration.java</code></a>**
 
 ```java
 @Bean
@@ -156,6 +156,6 @@ For a small clinic with one form, the [layered service](../layered-architecture/
 **[1]** Robert C. Martin, “[The Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html),” 13 August 2012, sections “The Dependency Rule,” “Entities,” “Use Cases,” “Interface Adapters,” “Frameworks and Drivers,” “Only Four Circles?,” “Crossing boundaries” and “What data crosses the boundaries.” Accessed 18 November 2026.
 
 <a id="ref-2"></a>
-**[2]** Spring Projects contributors, *Spring PetClinic*, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, [original visit form handler](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L95-L109) and [mapped visit and form fields](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/Visit.java#L33-L45). Accessed 18 November 2026.
+**[2]** Spring Projects contributors, *Spring PetClinic*, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L95-L109" target="_blank" rel="noopener noreferrer">original visit form handler</a> and <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/Visit.java#L33-L45" target="_blank" rel="noopener noreferrer">mapped visit and form fields</a>. Accessed 18 November 2026.
 
 Return to [Layered Architecture](../layered-architecture/). Continue with [Hexagonal Architecture / Ports and Adapters](../hexagonal-architecture/).

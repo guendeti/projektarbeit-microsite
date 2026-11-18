@@ -39,7 +39,7 @@ The diagram covers submitting a booking. Opening the form or showing it again af
 
 In `setUp`, each test gets a fresh store with pet 7 registered to owner 1. Passing that store to the interactor selects the adapter for this run. Read the three cases below as changes to a single booking request.
 
-**Our addition · `BookVisitInteractorTests.java`, lines 39–64.** Local source `src/test/java/org/springframework/samples/petclinic/visits/clean/BookVisitInteractorTests.java`.
+**Our tests · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/test/java/org/springframework/samples/petclinic/visits/clean/BookVisitInteractorTests.java#L38-L63" target="_blank" rel="noopener noreferrer"><code>BookVisitInteractorTests.java</code></a>**
 
 ```java
 @BeforeEach
@@ -78,7 +78,7 @@ These calls cover the rules in the interactor. A blank description is checked on
 
 The test can inspect the result because its storage adapter keeps a small map and a list. Only two methods below belong to the port. `addPet` is a helper for setting up the test data.
 
-**Our addition · `InMemoryVisitStore.java`, lines 30–50.** Local source `src/test/java/org/springframework/samples/petclinic/visits/clean/InMemoryVisitStore.java`.
+**Our tests · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/test/java/org/springframework/samples/petclinic/visits/clean/InMemoryVisitStore.java#L26-L46" target="_blank" rel="noopener noreferrer"><code>InMemoryVisitStore.java</code></a>**
 
 ```java
 class InMemoryVisitStore implements VisitStore {

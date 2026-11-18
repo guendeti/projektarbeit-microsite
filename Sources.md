@@ -10,7 +10,6 @@ This list collects the external sources cited across the current chapters. Numbe
 - Simon Brown, *The C4 model*, ["Abstractions"](https://c4model.com/abstractions).
 - James Lewis and Martin Fowler, [*Microservices*](https://martinfowler.com/articles/microservices.html), 2014.
 - Martin Fowler, [*Monolith First*](https://martinfowler.com/bliki/MonolithFirst.html), 2015.
-- D. L. Parnas, *On the Criteria To Be Used in Decomposing Systems into Modules*, *Communications of the ACM* 15(12), 1972. [Digitised article](https://www.cs.lafayette.edu/~gexia/cs301/resources/parnas.html), [DOI](https://doi.org/10.1145/361598.361623).
 - Jeffrey Palermo, [*The Onion Architecture: Part 1*](https://jeffreypalermo.com/2008/07/the-onion-architecture-part-1/) and [*Part 2*](https://jeffreypalermo.com/2008/07/the-onion-architecture-part-2/), 2008.
 - Randy Stafford, [*Service Layer*](https://martinfowler.com/eaaCatalog/serviceLayer.html), in Martin Fowler's *Patterns of Enterprise Application Architecture*, 2003.
 - Robert C. Martin, [*The Clean Architecture*](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html), 2012.
@@ -29,7 +28,9 @@ This list collects the external sources cited across the current chapters. Numbe
 
 ## Spring PetClinic codebases
 
-- Spring Projects contributors, [*Spring PetClinic*](https://github.com/spring-projects/spring-petclinic/tree/500158f732419217507c7656904b8e6aa1bcc0d6), commit `500158f732419217507c7656904b8e6aa1bcc0d6`. The chapters use the README, visit form, database schema and code in the `owner` package, especially `VisitController`, `Visit`, `Pet`, `Owner` and `OwnerRepository`.
+- Spring Projects contributors, [*Spring PetClinic*](https://github.com/spring-projects/spring-petclinic). <a href="https://github.com/guendeti/spring-petclinic/tree/500158f732419217507c7656904b8e6aa1bcc0d6" target="_blank" rel="noopener noreferrer">Original revision in the fork</a>, commit `500158f732419217507c7656904b8e6aa1bcc0d6`. The chapters use the README, visit form, database schema and code in the `owner` package, especially `VisitController`, `Visit`, `Pet`, `Owner` and `OwnerRepository`.
+
+- Project fork, <a href="https://github.com/guendeti/spring-petclinic/tree/bdd7783bf9c778882b7ec77e0f0a2f402e20b247" target="_blank" rel="noopener noreferrer"><em>Spring PetClinic Visit examples</em></a>, commit `bdd7783bf9c778882b7ec77e0f0a2f402e20b247`. This revision contains the Layered, Clean and Onion variants and their tests. The Clean implementation also illustrates Ports and Adapters.
 
 ## Licence cited with original code excerpts
 

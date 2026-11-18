@@ -26,7 +26,7 @@ One arrow is worth comparing across diagrams. During a successful booking, both 
 
 ## Following the same booking through the code
 
-The table follows the booking operation for an existing owner. The three variants are our additions to the local working copy. The first row shows the original controller. <sup><a href="#ref-1">[1]</a></sup>
+The table follows the booking operation for an existing owner. We added the three variants in our PetClinic fork. The first row shows the original controller. <sup><a href="#ref-1">[1]</a></sup>
 
 | Implementation | What happens when the date is today? | What happens with a future date and the right pet? |
 | --- | --- | --- |
@@ -43,7 +43,7 @@ There is one deliberate behaviour change to keep in mind when comparing results.
 
 Consider a different mistake: the date is fine, but the receptionist has selected another owner's pet. In the sample data, owner 1 has pet 1, Leo. Pet 2 belongs to owner 2. Our test submits owner 1 and pet 2 to each of the three implementations. <sup><a href="#ref-1">[1]</a></sup>
 
-**Our addition · `VisitBookingVariantsTests.java`, lines 120–124.** Local source `src/test/java/org/springframework/samples/petclinic/visits/VisitBookingVariantsTests.java`.
+**Our tests · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/test/java/org/springframework/samples/petclinic/visits/VisitBookingVariantsTests.java#L120-L124" target="_blank" rel="noopener noreferrer"><code>VisitBookingVariantsTests.java</code></a>**
 
 ```java
 @ParameterizedTest
@@ -55,7 +55,7 @@ void rejectsPetOfAnotherOwner(String name) {
 
 Each name runs the same case against a different implementation. Tomorrow is a valid date, so the mismatch between owner 1 and pet 2 is the detail this case is meant to test. The shared helper below checks the outcome.
 
-**Our addition · `VisitBookingVariantsTests.java`, lines 87–92.**
+**Our tests · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/test/java/org/springframework/samples/petclinic/visits/VisitBookingVariantsTests.java#L87-L92" target="_blank" rel="noopener noreferrer"><code>VisitBookingVariantsTests.java</code></a>**
 
 ```java
 private void assertRejected(String name, int ownerId, int petId, LocalDate date) {
@@ -78,7 +78,7 @@ There is a limit to what the passing tests tell us. The shared tests run inside 
 
 ## Trying the variants yourself
 
-With the local PetClinic working copy running on `http://localhost:8080` and its default sample data, open one of the following paths. The Clean and Hexagonal chapters use the same route.
+Follow the <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/README.md#visit-booking-demo" target="_blank" rel="noopener noreferrer">start instructions in our PetClinic fork</a>. With the application running on `http://localhost:8080` and using its default sample data, open one of the following paths. The Clean and Hexagonal chapters use the same route.
 
 | Version | Path for Leo's booking form |
 | --- | --- |
@@ -87,12 +87,12 @@ With the local PetClinic working copy running on `http://localhost:8080` and its
 | Clean and Hexagonal | `/clean/owners/1/pets/1/visits/new` |
 | Onion | `/onion/owners/1/pets/1/visits/new` |
 
-For a visible comparison, enter tomorrow's date and a short description. A successful submission returns to the owner page. To follow a rejected request even when the browser prevents choosing today, run `VisitVariantControllersTests`: its date-error case submits today directly to each variant. Then use the table above to locate the decision in the code.
+For a visible comparison, enter tomorrow's date and a short description. A successful submission returns to the owner page. To follow a rejected request even when the browser prevents choosing today, run <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/test/java/org/springframework/samples/petclinic/visits/VisitVariantControllersTests.java" target="_blank" rel="noopener noreferrer"><code>VisitVariantControllersTests</code></a>. Its date-error case submits today directly to each variant. Then use the table above to locate the decision in the code.
 
 ## References
 
 <a id="ref-1"></a>
-**[1]** Spring Projects contributors, *Spring PetClinic*, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, [visit form setup and submission](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L63-L111), [date and description fields](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/Visit.java#L39-L45) and [H2 sample pets](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/resources/db/h2/data.sql#L36-L37). Accessed 18 November 2026.
+**[1]** Spring Projects contributors, *Spring PetClinic*, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L63-L111" target="_blank" rel="noopener noreferrer">visit form setup and submission</a>, <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/Visit.java#L39-L45" target="_blank" rel="noopener noreferrer">date and description fields</a> and <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/resources/db/h2/data.sql#L36-L37" target="_blank" rel="noopener noreferrer">H2 sample pets</a>. Accessed 18 November 2026.
 
 <a id="ref-2"></a>
 **[2]** Martin Fowler, “[Presentation Domain Data Layering](https://martinfowler.com/bliki/PresentationDomainDataLayering.html),” 26 August 2015. Accessed 18 November 2026.

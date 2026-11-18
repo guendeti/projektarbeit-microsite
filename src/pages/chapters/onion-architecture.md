@@ -26,7 +26,7 @@ The original Spring PetClinic checks the date in its web controller and saves th
 
 For booking, an owner needs an ID and the IDs of their pets. Details such as a postal address can stay in the clinic's existing owner record. Follow the two checks in `bookVisit` to see what that smaller model can decide.
 
-**Our addition · `PetOwner.java`, lines 25–46.** Local source `src/main/java/org/springframework/samples/petclinic/visits/onion/domain/PetOwner.java`.
+**Our refactoring · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/onion/domain/PetOwner.java#L21-L42" target="_blank" rel="noopener noreferrer"><code>PetOwner.java</code></a>**
 
 ```java
 public class PetOwner {
@@ -61,7 +61,7 @@ The description passes through to `NewVisit`. In our working copy, the web form 
 
 The domain package defines two repository operations. `findOwner` can return an empty result for an unknown ID. `add` takes the accepted visit, including its owner and pet IDs.
 
-**Our addition · `PetOwnerRepository.java`, lines 24–30.** Local source `src/main/java/org/springframework/samples/petclinic/visits/onion/domain/PetOwnerRepository.java`.
+**Our refactoring · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/onion/domain/PetOwnerRepository.java#L20-L26" target="_blank" rel="noopener noreferrer"><code>PetOwnerRepository.java</code></a>**
 
 ```java
 public interface PetOwnerRepository {
@@ -75,7 +75,7 @@ public interface PetOwnerRepository {
 
 The application service uses that interface to complete one booking.
 
-**Our addition · `VisitBookingService.java`, lines 36–41.** Local source `src/main/java/org/springframework/samples/petclinic/visits/onion/application/VisitBookingService.java`.
+**Our refactoring · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/onion/application/VisitBookingService.java#L32-L37" target="_blank" rel="noopener noreferrer"><code>VisitBookingService.java</code></a>**
 
 ```java
 public void bookVisit(int ownerId, int petId, LocalDate date, String description) {
@@ -92,7 +92,7 @@ The order matters. An unknown owner stops the operation at `findOwner`. For a kn
 
 When Spring starts the application, `OnionVisitConfiguration` supplies a `JpaPetOwnerRepository` to the service. At runtime the call to `findOwner` reaches that implementation. In the source code it is the outer class that names and implements the inner interface. Palermo's practical example uses the same distinction between a dependency in the code and the object supplied at runtime. <sup><a href="#ref-1">[1]</a></sup>
 
-**Our addition · `JpaPetOwnerRepository.java`, lines 41–45.** Local source `src/main/java/org/springframework/samples/petclinic/visits/onion/infrastructure/JpaPetOwnerRepository.java`.
+**Our refactoring · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/onion/infrastructure/JpaPetOwnerRepository.java#L37-L41" target="_blank" rel="noopener noreferrer"><code>JpaPetOwnerRepository.java</code></a>**
 
 ```java
 @Override
@@ -110,7 +110,7 @@ The diagram follows the booking operation. To open the form or show it again aft
 
 The test gives owner 1 a single pet, number 7, and fixes today at 2 November 2026. Those values are all the setup the model needs.
 
-**Our addition · `PetOwnerTests.java`, lines 31–51.** Local source `src/test/java/org/springframework/samples/petclinic/visits/onion/domain/PetOwnerTests.java`.
+**Our tests · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/test/java/org/springframework/samples/petclinic/visits/onion/domain/PetOwnerTests.java#L28-L48" target="_blank" rel="noopener noreferrer"><code>PetOwnerTests.java</code></a>**
 
 ```java
 private static final LocalDate TODAY = LocalDate.of(2026, 11, 2);
@@ -156,7 +156,7 @@ The [architecture comparison](../architecture-comparison/) follows the same book
 **[1]** Jeffrey Palermo, "[The Onion Architecture: Part 1](https://jeffreypalermo.com/2008/07/the-onion-architecture-part-1/)," 29 July 2008, and “[The Onion Architecture: Part 2](https://jeffreypalermo.com/2008/07/the-onion-architecture-part-2/),” 30 July 2008, practical example of repository interfaces and runtime wiring. Accessed 18 November 2026.
 
 <a id="ref-2"></a>
-**[2]** Spring Projects contributors, *Spring PetClinic*, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, [original visit form handler](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L95-L109). Accessed 18 November 2026.
+**[2]** Spring Projects contributors, *Spring PetClinic*, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L95-L109" target="_blank" rel="noopener noreferrer">original visit form handler</a>. Accessed 18 November 2026.
 
 <a id="ref-3"></a>
 **[3]** Robert C. Martin, "[The Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)," Clean Coder Blog, 13 August 2012, section "Entities." Accessed 18 November 2026.

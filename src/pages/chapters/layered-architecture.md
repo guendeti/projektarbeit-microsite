@@ -19,7 +19,7 @@ In a strictly layered design, a caller goes through the next layer to reach the 
 
 In the original Spring PetClinic, the controller checks the visit date itself. Follow what happens to a date of today in this excerpt. The controller adds a field error to Spring MVC's `BindingResult`. Once the form has an error, the method returns the name of the form view before it reaches the save. <sup><a href="#ref-2">[2]</a></sup>
 
-**Original Spring PetClinic · `VisitController.java`, lines 100–109.** [View these lines in the official repository](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L100-L109).
+**Original Spring PetClinic · <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L100-L109" target="_blank" rel="noopener noreferrer"><code>VisitController.java</code></a>**
 
 ```java
 if (visit.getDate() != null && !visit.getDate().isAfter(LocalDate.now())) {
@@ -38,7 +38,7 @@ Excerpt from `VisitController.java`, copyright 2012–2025 the original authors,
 
 In our working copy, `VisitService.bookVisit` gives callers one operation for booking a visit. This is the idea behind a **service layer**. A caller provides the booking details, and the service coordinates the steps needed to record the visit. <sup><a href="#ref-3">[3]</a></sup>
 
-**Our addition · `VisitService.java`, lines 38–50.** Local source `src/main/java/org/springframework/samples/petclinic/visits/layered/VisitService.java`.
+**Our refactoring · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/layered/VisitService.java#L34-L46" target="_blank" rel="noopener noreferrer"><code>VisitService.java</code></a>**
 
 ```java
 public void bookVisit(int ownerId, int petId, Visit visit) {
@@ -60,7 +60,7 @@ The first check runs before the service reads any owner records. Today and earli
 
 The web controller still decides what the receptionist sees. The excerpt below begins after Spring MVC has checked the submitted form.
 
-**Our addition · `LayeredVisitController.java`, lines 67–78.** Local source `src/main/java/org/springframework/samples/petclinic/visits/layered/LayeredVisitController.java`.
+**Our refactoring · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/layered/LayeredVisitController.java#L74-L85" target="_blank" rel="noopener noreferrer"><code>LayeredVisitController.java</code></a>**
 
 ```java
 if (!result.hasErrors()) {
@@ -108,7 +108,7 @@ For the pet clinic, the extra service earns its place by giving the web form and
 **[1]** Martin Fowler, “[Presentation Domain Data Layering](https://martinfowler.com/bliki/PresentationDomainDataLayering.html),” 26 August 2015. Accessed 18 November 2026.
 
 <a id="ref-2"></a>
-**[2]** Spring Projects contributors, *Spring PetClinic*, commit `500158f732419217507c7656904b8e6aa1bcc0d6`. [Original date check and save](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L95-L109), [visit date and description constraints](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/Visit.java#L39-L45) and [owner repository interface](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/OwnerRepository.java#L36). Accessed 18 November 2026.
+**[2]** Spring Projects contributors, *Spring PetClinic*, commit `500158f732419217507c7656904b8e6aa1bcc0d6`. <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L95-L109" target="_blank" rel="noopener noreferrer">Original date check and save</a>, <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/Visit.java#L39-L45" target="_blank" rel="noopener noreferrer">visit date and description constraints</a> and <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/OwnerRepository.java#L36" target="_blank" rel="noopener noreferrer">owner repository interface</a>. Accessed 18 November 2026.
 
 <a id="ref-3"></a>
 **[3]** Randy Stafford, “[Service Layer](https://martinfowler.com/eaaCatalog/serviceLayer.html),” in Martin Fowler's *Patterns of Enterprise Application Architecture*, online entry dated 5 March 2003. Accessed 18 November 2026.

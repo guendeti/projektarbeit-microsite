@@ -104,7 +104,7 @@ These choices describe where the clinic draws boundaries between running applica
 **[2]** James Lewis and Martin Fowler, “[Microservices](https://martinfowler.com/articles/microservices.html),” 25 March 2014, sections “Componentization via Services” and “Organized around Business Capabilities.” Accessed 18 November 2026.
 
 <a id="ref-3"></a>
-**[3]** Spring Projects contributors, *Spring PetClinic*, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, [owner page template, line 73](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/resources/templates/owners/ownerDetails.html#L73). Accessed 18 November 2026.
+**[3]** Spring Projects contributors, *Spring PetClinic*, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/resources/templates/owners/ownerDetails.html#L73" target="_blank" rel="noopener noreferrer">owner page template</a>. Accessed 18 November 2026.
 
 <a id="ref-4"></a>
 **[4]** Chris Richardson, “[Pattern: Transactional outbox](https://microservices.io/patterns/data/transactional-outbox.html),” sections “Solution” and “Resulting context.” Accessed 18 November 2026.

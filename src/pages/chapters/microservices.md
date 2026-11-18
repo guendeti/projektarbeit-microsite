@@ -40,7 +40,7 @@ The **API gateway** gives the browser one address and forwards each request to t
 
 In the official application, the controller first loads the owner. It then looks for the selected pet among that owner's pets. This matters because finding a pet somewhere in the clinic would answer a different question. <sup><a href="#ref-2">[2]</a></sup>
 
-**Original Spring PetClinic · `VisitController.java`, lines 70–74.** [View these lines in the official repository](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L70-L74).
+**Original Spring PetClinic · <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L70-L74" target="_blank" rel="noopener noreferrer"><code>VisitController.java</code></a>**
 
 ```java
 Pet pet = owner.getPet(petId);
@@ -88,7 +88,7 @@ The case for a split gets stronger if the Visits team regularly has to wait for 
 **[1]** James Lewis and Martin Fowler, "[Microservices](https://martinfowler.com/articles/microservices.html)," martinfowler.com, 25 March 2014, sections "Componentization via Services," "Organized around Business Capabilities," "Products not Projects," "Decentralized Governance," "Decentralized Data Management," "Infrastructure Automation" and "Design for failure." Accessed 17 November 2026.
 
 <a id="ref-2"></a>
-**[2]** Spring Projects contributors, *Spring PetClinic*, repository `spring-projects/spring-petclinic`, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, [source folder](https://github.com/spring-projects/spring-petclinic/tree/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic) with the packages `owner` and `vet`. Accessed 17 November 2026.
+**[2]** Spring Projects contributors, *Spring PetClinic*, repository `spring-projects/spring-petclinic`, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, <a href="https://github.com/guendeti/spring-petclinic/tree/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic" target="_blank" rel="noopener noreferrer">source folder</a> with the packages `owner` and `vet`. Accessed 17 November 2026.
 
 <a id="ref-3"></a>
 **[3]** Chris Richardson, "[Pattern: API Gateway](https://microservices.io/patterns/apigateway.html)," microservices.io, sections "Solution" and "Resulting context." Accessed 17 November 2026.

@@ -39,7 +39,7 @@ So far, we have looked at responsibilities and dependencies within one applicati
 
 Spring PetClinic is an open-source sample application for a pet clinic. In our examples, a receptionist opens an owner's page, chooses a pet and records a visit with a date and a short description. The original application checks the visit date and saves the visit. The rule about clinic opening days above is a hypothetical change. <sup><a href="#ref-5">[5]</a></sup>
 
-Throughout the site, **Original Spring PetClinic** identifies code from the official project. **Our addition** identifies code we implemented in our working copy. A **proposed design** shows how the pet clinic could work with different boundaries, for example if booking ran as a separate application. You can follow the [original booking from form to database](../visit-use-case/) for more detail.
+Throughout the site, **Original Spring PetClinic** identifies code from the [official project](https://github.com/spring-projects/spring-petclinic). **Our refactoring** and **Our tests** identify code we added. The code links open the matching revision in <a href="https://github.com/guendeti/spring-petclinic" target="_blank" rel="noopener noreferrer">our PetClinic fork</a>. A **proposed design** shows how the pet clinic could work with different boundaries, for example if booking ran as a separate application. You can follow the [original booking from form to database](../visit-use-case/) for more detail.
 
 ## References
 
@@ -56,6 +56,6 @@ Throughout the site, **Original Spring PetClinic** identifies code from the offi
 **[4]** Simon Brown, *The C4 model*, ["Abstractions"](https://c4model.com/abstractions), overview of software systems, containers, components and code. Accessed 15 November 2026.
 
 <a id="ref-5"></a>
-**[5]** Spring Projects contributors, *Spring PetClinic*, repository `spring-projects/spring-petclinic`, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, [README.md](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/README.md), sample application, and [VisitController.java](https://github.com/spring-projects/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L95-L109) for the date check and save. Pinned source. Accessed in the local checkout, 3 November 2026.
+**[5]** Spring Projects contributors, *Spring PetClinic*, repository `spring-projects/spring-petclinic`, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/README.md" target="_blank" rel="noopener noreferrer">README.md</a>, sample application, and <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L95-L109" target="_blank" rel="noopener noreferrer">VisitController.java</a> for the date check and save. Pinned source. Accessed in the local checkout, 3 November 2026.
 
 Continue with [System vs. application architecture](../system-vs-application-architecture/).
