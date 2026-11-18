@@ -29,12 +29,12 @@ In our proposed design, each team's pages are reached through a shared API gatew
 
 <figure class="architecture-figure">
 <div class="diagram-scroll" tabindex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
-<img src="../../diagrams/microservices-structure.svg" alt="A browser talks to an API gateway, which routes requests to the Owners, Visits and Vets services. Each service is owned by one team, has its own pages and its own database. During booking, the Visits service calls the Owners service." style="max-width:100%;height:auto" />
+<img src="../../diagrams/microservices-structure.svg" alt="An API gateway routes browser requests to Owners, Visits and Vets. Each team owns its pages, service and data. Visits owns the booking rules and calls Owners to check pet ownership." style="max-width:100%;height:auto" />
 </div>
 <figcaption>Proposed design for Spring PetClinic. Each dashed frame shows what one team owns. Arrows show requests and database access at runtime. The service split is an example developed for this chapter. <sup><a href="#ref-2">[2]</a></sup></figcaption>
 </figure>
 
-The **API gateway** gives the browser one address and forwards each request to the right service. For example, requests under `/visits` go to Visits. A gateway can also combine responses for a client that needs data from several services. In the owner page example below, the browser requests the two parts separately. <sup><a href="#ref-3">[3]</a></sup>
+The **API gateway** gives the browser one address and forwards each request to the right service. For example, requests under `/visits` go to Visits. <sup><a href="#ref-3">[3]</a></sup>
 
 ## Booking a visit across a service boundary
 
@@ -75,6 +75,8 @@ The [chapter on Self-contained Systems](../scs-and-isa/) explores the second opt
 ## Combining data for the owner page
 
 Suppose a receptionist opens an owner's page to check a pet's last visit. In our design, the browser first loads the owner and pets from Owners through the gateway. It then requests the visit history from Visits through the same gateway. If Visits is down, the owner details are still available. The history section should say “Visit history is currently unavailable.” An empty list would suggest the pet has never had a visit. Compare that with an outage in Owners during booking. A missing visit history can be shown as a gap on the page. A missing ownership check stops the receptionist from confirming the visit.
+
+The community version of PetClinic shows another way to put that information on the same page. The browser can ask for both in one request. In <a href="https://github.com/spring-petclinic/spring-petclinic-microservices/blob/e8b747ab522721076cacb5cf688eb8a54ba8c5c9/spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/boundary/web/ApiGatewayController.java#L54-L65" target="_blank" rel="noopener noreferrer"><code>getOwnerDetails</code></a>, the gateway loads the owner and their pets, fetches the visits for those pets and returns the combined result. This is **gateway aggregation**. <sup><a href="#ref-3">[3]</a></sup>
 
 ## Evaluating the trade-off
 

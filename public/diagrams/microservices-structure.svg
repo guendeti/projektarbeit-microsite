@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="560" viewBox="0 0 1000 560" role="img" aria-labelledby="title desc">
   <title id="title">Proposed split of Spring PetClinic into microservices</title>
-  <desc id="desc">A browser talks to an API gateway, which routes requests to an Owners, a Visits and a Vets service and can combine their responses. Each service has its own database and its own pages, and each is owned by one team. During booking, the Visits service calls the Owners service over HTTP to check that the pet belongs to the owner. This is a proposed design, not an implementation.</desc>
+  <desc id="desc">A browser talks to an API gateway, which routes requests to Owners, Visits and Vets. Each team owns its service, pages and database. The Visits team owns the booking rules. During booking, the Visits service calls Owners over HTTP to check that the pet belongs to the owner. The diagram shows a proposed design.</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
       <path d="M0 0 L10 5 L0 10 Z" fill="#24364a"/>
@@ -15,7 +15,7 @@
 
     <rect x="260" y="65" width="480" height="80" rx="5" fill="#eaf2fb" stroke="#42566b" stroke-width="1.5"/>
     <text x="500" y="96" font-size="16" text-anchor="middle" font-weight="bold">API gateway</text>
-    <text x="500" y="120" font-size="14" text-anchor="middle">routes requests and can combine responses</text>
+    <text x="500" y="120" font-size="14" text-anchor="middle">routes requests to each service</text>
 
     <g fill="none" stroke="#42566b" stroke-width="1.4" stroke-dasharray="7 5">
       <rect x="25" y="200" width="300" height="270" rx="8"/>
@@ -36,7 +36,7 @@
     <text x="175" y="316" font-size="14" text-anchor="middle">owner and pet API</text>
     <text x="500" y="270" font-size="16" text-anchor="middle" font-weight="bold">Visits service</text>
     <text x="500" y="294" font-size="14" text-anchor="middle">booking form and visit history</text>
-    <text x="500" y="316" font-size="14" text-anchor="middle">visit API</text>
+    <text x="500" y="316" font-size="14" text-anchor="middle">booking rules and visit API</text>
     <text x="825" y="270" font-size="16" text-anchor="middle" font-weight="bold">Vets service</text>
     <text x="825" y="294" font-size="14" text-anchor="middle">vet list page</text>
     <text x="825" y="316" font-size="14" text-anchor="middle">vet API</text>
@@ -64,7 +64,7 @@
     <rect x="304" y="278" width="67" height="16" fill="white"/>
     <rect x="304" y="305" width="67" height="15" fill="white"/>
     <text x="337" y="291" font-size="12" text-anchor="middle">check pet</text>
-    <text x="337" y="316" font-size="12" text-anchor="middle">at booking</text>
+    <text x="337" y="316" font-size="12" text-anchor="middle">ownership</text>
 
     <text x="24" y="510" font-size="14">Solid arrows are HTTP calls and database access at runtime. Dashed frames mark the team that owns a service,</text>
     <text x="24" y="532" font-size="14">including its pages. Our own design based on the official Spring PetClinic, not implemented.</text>

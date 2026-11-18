@@ -13,30 +13,22 @@ In our layered version, the controller reads the form, a booking service checks 
 
 Consider what happens when a receptionist enters today's date. The **presentation layer** reads the form and can show an error beside the date field. The **business layer** decides which dates the clinic accepts. The **data access layer** loads and saves records when the booking needs them. These are logical layers. A *tier* describes where software runs or is deployed. Adding a service class here introduces no network call. <sup><a href="#ref-1">[1]</a></sup>
 
-In a strictly layered design, a caller goes through the next layer to reach the one below it. A design can also allow a layer to be skipped for a particular task. Our booking operation goes through the service. Preparing the form takes a shorter path, shown in the diagram below.
+In a strictly layered design, a caller goes through the next layer to reach the one below it. A design can also allow a layer to be skipped for a particular task.
+
+## Reading the dependencies
+
+To see how the layers work together in our variant, follow the solid arrows from the controller through the booking service to the repository. Each arrow means “uses in its code”. The dashed arrow shows why the controller also holds an `OwnerRepository`. When it opens the form or shows it again after an error, it passes the repository to `VisitFormModel`, which loads the owner and pet for display.
+
+<figure class="architecture-figure">
+<div class="diagram-scroll" tabindex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
+<img src="../../diagrams/layered-dependencies.svg" alt="For booking, LayeredVisitController uses VisitService, which uses OwnerRepository. For form display the controller also depends on OwnerRepository and passes it to VisitFormModel." style="max-width:100%;height:auto" />
+</div>
+<figcaption>Code dependencies in our layered PetClinic variant. The controller and the service run in the same application. The repository provides the data access operations.</figcaption>
+</figure>
 
 ## Refactoring the booking into a service layer
 
-In the original Spring PetClinic, the controller checks the visit date itself. Follow what happens to a date of today in this excerpt. The controller adds a field error to Spring MVC's `BindingResult`. Once the form has an error, the method returns the name of the form view before it reaches the save. <sup><a href="#ref-2">[2]</a></sup>
-
-**Original Spring PetClinic · <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L100-L109" target="_blank" rel="noopener noreferrer"><code>VisitController.java</code></a>**
-
-```java
-if (visit.getDate() != null && !visit.getDate().isAfter(LocalDate.now())) {
-    result.rejectValue("date", "typeMismatch.visitDate");
-}
-
-if (result.hasErrors()) {
-    return "pets/createOrUpdateVisitForm";
-}
-
-owner.addVisit(petId, visit);
-this.owners.save(owner);
-```
-
-Excerpt from `VisitController.java`, copyright 2012–2025 the original authors, licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
-
-In our working copy, `VisitService.bookVisit` gives callers one operation for booking a visit. This is the idea behind a **service layer**. A caller provides the booking details, and the service coordinates the steps needed to record the visit. <sup><a href="#ref-3">[3]</a></sup>
+In the [original booking code](../visit-use-case/#what-happens-in-the-code), the controller checks the visit date and adds a field error when the date is too early. <sup><a href="#ref-2">[2]</a></sup> In our variant, `VisitService.bookVisit` gives both the form and a possible import job the same operation to call. The caller supplies the booking details, and the service coordinates the checks and the save. That is the role of the **service layer**. <sup><a href="#ref-3">[3]</a></sup>
 
 **Our refactoring · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/layered/VisitService.java#L34-L46" target="_blank" rel="noopener noreferrer"><code>VisitService.java</code></a>**
 
@@ -58,37 +50,7 @@ public void bookVisit(int ownerId, int petId, Visit visit) {
 
 The first check runs before the service reads any owner records. Today and earlier dates are rejected. There is also one deliberate change from the original: the original date check skips a missing date, while the service rejects it. For a future date, the service loads the owner and looks for the pet among that owner's pets. Once both checks pass, `addVisit` updates the pet in memory and `save` asks the repository to store the updated owner. <sup><a href="#ref-2">[2]</a></sup>
 
-The web controller still decides what the receptionist sees. The excerpt below begins after Spring MVC has checked the submitted form.
-
-**Our refactoring · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/layered/LayeredVisitController.java#L74-L85" target="_blank" rel="noopener noreferrer"><code>LayeredVisitController.java</code></a>**
-
-```java
-if (!result.hasErrors()) {
-    try {
-        visitService.bookVisit(ownerId, petId, visit);
-        redirectAttributes.addFlashAttribute("message", "Your visit has been booked");
-        return "redirect:/owners/{ownerId}";
-    }
-    catch (InvalidVisitDateException ex) {
-        result.rejectValue("date", "typeMismatch.visitDate");
-    }
-}
-VisitFormModel.addOwnerAndPet(owners, ownerId, petId, model);
-return VisitFormModel.VIEW;
-```
-
-If the service accepts the booking, the controller redirects to the owner page with a confirmation. If the service rejects the date, the controller attaches the error to the date field, reloads the owner and pet for display, and shows the form again. An import job could catch the same exception and report which row in the file needs fixing.
-
-## Reading the dependencies
-
-Read each arrow as “uses in its code”. Follow the solid arrows for a successful booking. The dashed arrow shows why the controller also has an `OwnerRepository` field. When opening the form or showing it again after an error, the controller passes the repository to `VisitFormModel`, the helper that loads the owner and pet.
-
-<figure class="architecture-figure">
-<div class="diagram-scroll" tabindex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
-<img src="../../diagrams/layered-dependencies.svg" alt="For booking, LayeredVisitController uses VisitService, which uses OwnerRepository. For form display the controller also depends on OwnerRepository and passes it to VisitFormModel." style="max-width:100%;height:auto" />
-</div>
-<figcaption>Code dependencies in our layered PetClinic variant. The controller and the service run in the same application. The repository provides the data access operations.</figcaption>
-</figure>
+The <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/layered/LayeredVisitController.java#L74-L85" target="_blank" rel="noopener noreferrer">controller</a> calls the service and turns a date exception into an error beside the date field. An import job could catch the same exception and report which row in the file needs fixing.
 
 ## What another caller can reuse
 

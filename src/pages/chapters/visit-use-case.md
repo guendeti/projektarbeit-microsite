@@ -15,7 +15,16 @@ The booking form shows the selected pet and asks for a date and a short descript
 
 ## What happens in the code
 
-`VisitController` coordinates the request. Before displaying or processing the form, it loads the owner through `OwnerRepository`, finds the selected pet and attaches a new visit to it in memory. At this point the visit already has a date, but it has yet to be saved. When the form is submitted, the following method runs. <sup><a href="#ref-1">[1]</a></sup>
+Those two outcomes come from the same controller. To see where the paths split, follow the form from the first request through to submission. PetClinic prepares the owner, pet and a new visit before handling each request. The decision to save comes after the submitted values have been checked. <sup><a href="#ref-1">[1]</a></sup>
+
+<figure class="architecture-figure">
+<div class="diagram-scroll" tabindex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
+<img src="../../diagrams/visit-flow.svg" alt="GET prepares the owner, pet and a new visit dated tomorrow and renders the form. POST prepares again, binds and validates the input and checks that any supplied date is in the future. On errors the form is shown again. Otherwise the visit is added through the owner, saved, and the user is redirected." style="max-width:100%;height:auto" />
+</div>
+<figcaption>Order in which the original VisitController handles the two requests. Own diagram of the pinned source code. <sup><a href="#ref-1">[1]</a></sup></figcaption>
+</figure>
+
+The method below handles the second request. Its two `if` statements show where validation can send the receptionist back to the form, before the call to `owners.save(owner)`. <sup><a href="#ref-1">[1]</a></sup>
 
 **Original Spring PetClinic · <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L97-L112" target="_blank" rel="noopener noreferrer"><code>VisitController.java</code></a>**
 
@@ -40,14 +49,7 @@ public String processNewVisitForm(@ModelAttribute Owner owner, @PathVariable int
 
 Copyright 2012–2025 the original authors, licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
 
-Look at the two `if` statements. The first checks the date only when one was supplied. The second checks `result.hasErrors()`, which also includes errors from form binding and validation. For example, the annotations on `Visit` require the description to contain some text beyond whitespace and limit it to 255 characters. Any error sends the receptionist back to the form. Only the success path reaches `owners.save(owner)`. <sup><a href="#ref-1">[1]</a></sup>
-
-<figure class="architecture-figure">
-<div class="diagram-scroll" tabindex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
-<img src="../../diagrams/visit-flow.svg" alt="GET prepares the owner, pet and a new visit dated tomorrow and renders the form. POST prepares again, binds and validates the input and checks that any supplied date is in the future. On errors the form is shown again. Otherwise the visit is added through the owner, saved, and the user is redirected." style="max-width:100%;height:auto" />
-</div>
-<figcaption>Order in which the original VisitController handles the two requests. Own diagram of the pinned source code. <sup><a href="#ref-1">[1]</a></sup></figcaption>
-</figure>
+The first check runs when the form supplies a date. The second also catches errors already recorded during binding and validation, including a blank description or one longer than 255 characters. <sup><a href="#ref-1">[1]</a></sup>
 
 The visit is not saved by a repository of its own. `Owner` holds its pets, and each `Pet` holds its visits. The relationships are configured so that saving the owner also saves new visits, which is why the controller calls `owners.save(owner)`. <sup><a href="#ref-1">[1]</a></sup>
 
@@ -60,39 +62,25 @@ The visit is not saved by a repository of its own. `Owner` holds its pets, and e
 
 ## Why this is a good starting point
 
-For a small form, this design is perfectly reasonable. It becomes a problem once the clinic wants to book visits in a second way, for example through an app for pet owners or an import from another system. The date rule lives inside a web controller and reports its result through `BindingResult`, a class of the web framework. A second entry point could not reuse the rule without also depending on the web layer. The rule can be exercised through the controller, while a storage integration test requires a database.
-
-This is what the following chapters change. Each variant moves the rule and the storage into a different place and uses dependencies in a different way.
+For a small form, this design works well. Now suppose the clinic also wants to import upcoming visits from a file. The import needs the same date rule, but the original controller reports errors through the web framework's `BindingResult`. The following chapters explore where that rule can live so a second caller can use it, and how each booking operation reaches the same stored records.
 
 ## Our refactorings
 
 We refactored Spring PetClinic starting from the same official commit and kept the original booking route. All three variants sit alongside it in <a href="https://github.com/guendeti/spring-petclinic/tree/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits" target="_blank" rel="noopener noreferrer">the visits package in our PetClinic fork</a>.
 
-| Package | Used in the chapter | Address of the booking form |
-| --- | --- | --- |
-| `visits.layered` | [Layered Architecture](../layered-architecture/) | `/layered/owners/{ownerId}/pets/{petId}/visits/new` |
-| `visits.clean` | [Clean Architecture](../clean-architecture/) and [Hexagonal Architecture](../hexagonal-architecture/) | `/clean/owners/{ownerId}/pets/{petId}/visits/new` |
-| `visits.onion` | [Onion Architecture](../onion-architecture/) | `/onion/owners/{ownerId}/pets/{petId}/visits/new` |
+| Package | Used in the chapter |
+| --- | --- |
+| `visits.layered` | [Layered Architecture](../layered-architecture/) |
+| `visits.clean` | [Clean Architecture](../clean-architecture/) and [Hexagonal Architecture](../hexagonal-architecture/) |
+| `visits.onion` | [Onion Architecture](../onion-architecture/) |
 
-Every variant uses the existing booking form and changes only what happens when it is submitted. Showing the form, with the owner and pet, uses the same small helper class in all variants, because it is not part of the comparison. This helper reads `OwnerRepository` directly. For displaying the form, the controllers of all variants therefore still depend on the repository, past the layers and ports of the following chapters. A real application would choose one structure. The variants sit side by side only so that they can be compared and tested together.
+The three variants sit side by side so we can compare the code that handles submission. They reuse the same form and the same helper to load owner and pet details when the form is shown. That helper uses `OwnerRepository` directly, so the controllers still depend on the repository for that part of the request. You can [try the original and each variant](../architecture-comparison/#trying-the-variants-yourself) using the routes in the comparison chapter.
 
-We deliberately changed one detail of the behaviour. The original code accepts a visit without a date, because the date rule skips empty values and no other check requires a date. All our variants reject a missing date. <sup><a href="#ref-1">[1]</a></sup> The web form checks that the description contains text and is at most 255 characters long. None of the three booking methods checks the description itself. In all three variants, loading and saving use separate repository calls, with no transaction around the whole booking operation.
+We deliberately changed one detail of the behaviour. The original code accepts a visit without a date, because the date rule skips empty values and no other check requires a date. All three variants reject a missing date. They still check the description at the form. <sup><a href="#ref-1">[1]</a></sup>
 
 ## The same cases for every variant
 
-To be sure that the variants really do the same thing, they all have to pass the same cases. The cases run as automated tests against all three variants and the real database mapping. A second test class sends form requests to each variant's controller for a valid booking, a date today and an empty description, and checks that each form can be displayed.
-
-| Case | Expected result |
-| --- | --- |
-| Valid owner and pet, date tomorrow | The visit is stored |
-| Date today | Rejected, nothing is stored |
-| Date in the past | Rejected, nothing is stored |
-| No date | Rejected, nothing is stored |
-| Pet belongs to another owner | Rejected, nothing is stored |
-| Owner does not exist | Rejected, nothing is stored |
-| Empty description | The form shows an error |
-
-All listed cases pass for the three variants. See <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/test/java/org/springframework/samples/petclinic/visits/VisitBookingVariantsTests.java" target="_blank" rel="noopener noreferrer"><code>VisitBookingVariantsTests</code></a> for the shared booking cases and <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/test/java/org/springframework/samples/petclinic/visits/VisitVariantControllersTests.java" target="_blank" rel="noopener noreferrer"><code>VisitVariantControllersTests</code></a> for the form requests.
+We use the same cases for all three variants. The <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/test/java/org/springframework/samples/petclinic/visits/VisitBookingVariantsTests.java" target="_blank" rel="noopener noreferrer">booking tests</a> check what gets stored. For example, a valid booking for tomorrow is saved, while a booking for today is rejected. The <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/test/java/org/springframework/samples/petclinic/visits/VisitVariantControllersTests.java" target="_blank" rel="noopener noreferrer">controller tests</a> check what happens at the form, including the date error the receptionist sees.
 
 ## References
 

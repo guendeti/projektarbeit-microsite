@@ -17,14 +17,7 @@ The hexagon gives us room to draw several interactions around one application. I
 
 ## The same code seen as ports and adapters
 
-We use the booking implementation from our `visits.clean` package. The [Clean Architecture chapter](../clean-architecture/) follows dependencies into the core. Here the question is which parts can take each other's place on either side of that core.
-
-| Port defined by the booking core | What happens at that boundary? | Adapters in our working copy |
-| --- | --- | --- |
-| `BookVisitUseCase` (driving) | A caller supplies the owner ID, pet ID, date and description. `BookVisitInteractor` implements the operation. | `CleanVisitController` calls it for a receptionist. `BookVisitInteractorTests` calls it from a test. |
-| `VisitStore` (driven) | The interactor asks whether the pet belongs to the owner. If the booking checks pass, it asks the store to add the visit. | `JpaVisitStore` implements these operations using the database. `InMemoryVisitStore` implements them in memory for the tests. |
-
-Follow the top pair of adapters in the diagram for a web booking and the bottom pair for a test. On the right, the arrows point back to `VisitStore` because the adapter classes implement that interface. At runtime, the interactor calls the storage adapter supplied to it.
+We use the same booking code as in the [Clean Architecture chapter](../clean-architecture/). Start with the top row of the diagram. The web controller asks the application to book a visit, and the interactor uses the JPA adapter to store it. Now follow the bottom row. A test makes the same request, this time with an in-memory store.
 
 <figure class="architecture-figure">
 <div class="diagram-scroll" tabindex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
@@ -33,13 +26,15 @@ Follow the top pair of adapters in the diagram for a web booking and the bottom 
 <figcaption>Two ways to run the same booking in our working copy. Solid arrows show which port the callers use. Dashed arrows point from each storage adapter to the interface it implements.</figcaption>
 </figure>
 
+On the right, the arrows point back to `VisitStore` because both adapters implement that interface. During a booking, the interactor calls whichever adapter it was given.
+
 The diagram covers submitting a booking. Opening the form or showing it again after an error also needs the owner and pet for display. The controller passes `OwnerRepository` to the shared `VisitFormModel` helper for that lookup. This part of the web adapter still depends on the repository. The [Visit use case](../visit-use-case/#our-refactorings) explains the choice.
 
 ## A second driving adapter, a test
 
-In `setUp`, each test gets a fresh store with pet 7 registered to owner 1. Passing that store to the interactor selects the adapter for this run. Read the three cases below as changes to a single booking request.
+To see how the test uses the lower path in the diagram, look at `setUp()`. It creates a fresh in-memory store with pet 7 registered to owner 1 and passes that store to the interactor. The test then calls the same `bookVisit` operation as the web controller.
 
-**Our tests · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/test/java/org/springframework/samples/petclinic/visits/clean/BookVisitInteractorTests.java#L38-L63" target="_blank" rel="noopener noreferrer"><code>BookVisitInteractorTests.java</code></a>**
+**Our tests · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/test/java/org/springframework/samples/petclinic/visits/clean/BookVisitInteractorTests.java#L38-L49" target="_blank" rel="noopener noreferrer"><code>BookVisitInteractorTests.java</code></a>**
 
 ```java
 @BeforeEach
@@ -54,57 +49,13 @@ void booksVisitForTomorrow() {
     bookVisit.bookVisit(1, 7, LocalDate.now().plusDays(1), "Vaccination");
     assertThat(store.visits).hasSize(1);
 }
-
-@Test
-void rejectsVisitForToday() {
-    assertThatThrownBy(() -> bookVisit.bookVisit(1, 7, LocalDate.now(), "Vaccination"))
-        .isInstanceOf(InvalidVisitDateException.class);
-    assertThat(store.visits).isEmpty();
-}
-
-@Test
-void rejectsPetOfAnotherOwner() {
-    assertThatThrownBy(() -> bookVisit.bookVisit(2, 7, LocalDate.now().plusDays(1), "Vaccination"))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThat(store.visits).isEmpty();
-}
 ```
 
-Booking a vaccination for tomorrow adds one entry. Changing just the date to today raises a date error. Keeping tomorrow's date but changing the owner to 2 raises an ownership error. In both rejected cases the list stays empty. That last check matters: the test would catch a booking recorded before the error was reported.
-
-These calls cover the rules in the interactor. A blank description is checked on the web form, so exercising the input port directly does not test that validation. Likewise, the successful test checks the number of entries. A test of the JPA adapter would still be needed to verify how the visit fields are stored in the database.
+The test checks that the booking adds one entry. The <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/test/java/org/springframework/samples/petclinic/visits/clean/BookVisitInteractorTests.java#L51-L63" target="_blank" rel="noopener noreferrer">rejection tests</a> make one change at a time, either booking for today or using the wrong owner. In both cases the store stays empty. These tests cover the rules in the interactor. Form validation and the JPA mapping are checked separately in the [shared cases](../visit-use-case/#the-same-cases-for-every-variant).
 
 ## A second driven adapter, memory instead of a database
 
-The test can inspect the result because its storage adapter keeps a small map and a list. Only two methods below belong to the port. `addPet` is a helper for setting up the test data.
-
-**Our tests · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/test/java/org/springframework/samples/petclinic/visits/clean/InMemoryVisitStore.java#L26-L46" target="_blank" rel="noopener noreferrer"><code>InMemoryVisitStore.java</code></a>**
-
-```java
-class InMemoryVisitStore implements VisitStore {
-
-    private final Map<Integer, Integer> ownerOfPet = new HashMap<>();
-
-    final List<String> visits = new ArrayList<>();
-
-    void addPet(int ownerId, int petId) {
-        ownerOfPet.put(petId, ownerId);
-    }
-
-    @Override
-    public boolean petBelongsToOwner(int ownerId, int petId) {
-        return Integer.valueOf(ownerId).equals(ownerOfPet.get(petId));
-    }
-
-    @Override
-    public void addVisit(int ownerId, int petId, LocalDate date, String description) {
-        visits.add(petId + " " + date + " " + description);
-    }
-
-}
-```
-
-The map uses the pet ID as its key. After `addPet(1, 7)`, looking up pet 7 gives owner 1. Asking about owner 2 therefore returns `false`, and the interactor decides to reject the booking. For an accepted visit, the adapter adds a string to the list. That is enough for the assertions above. In the running web application, the [JPA adapter](../clean-architecture/#how-the-adapters-carry-out-the-booking) uses the same port to load the owner, attach a visit to the pet and save the owner. Using an in-memory adapter to exercise the application in isolation is one of Cockburn's original examples. <sup><a href="#ref-1">[1]</a></sup>
+The <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/test/java/org/springframework/samples/petclinic/visits/clean/InMemoryVisitStore.java#L26-L46" target="_blank" rel="noopener noreferrer"><code>InMemoryVisitStore</code></a> uses the test data to answer the ownership check and keeps accepted visits in memory. The [JPA adapter](../clean-architecture/#how-the-adapters-carry-out-the-booking) provides the same two operations using the database. That lets the test run the booking rules in isolation, as in Cockburn's original example. <sup><a href="#ref-1">[1]</a></sup>
 
 ## Choosing ports by purpose
 

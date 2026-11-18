@@ -17,7 +17,7 @@ Independence also depends on what the systems share. The booking rules belong in
 
 ## How SCS relate to microservices
 
-Both approaches support independent releases. A microservice may provide an API to a separate front end. An SCS includes the web interface for its business area and favours links or other forms of UI integration. It can even use several microservices internally. Both approaches can use messages. What matters for booking is whether Visits must wait for another system to answer **while the receptionist is submitting the form**. <sup><a href="#ref-1">[1]</a></sup> <sup><a href="#ref-2">[2]</a></sup>
+In both of our clinic designs, the Visits team owns the booking form and can release it independently. The difference shows up when the receptionist clicks **Book**. In the microservices example, Visits asks Owners to check the pet and waits for a reply. In the SCS example, Visits checks its local copy of the pet details, so it can book a known pet while Owners is offline. An SCS includes the web interface for its business area and can use several microservices internally. <sup><a href="#ref-1">[1]</a></sup> <sup><a href="#ref-2">[2]</a></sup>
 
 ## Booking a visit in the pet clinic
 
@@ -48,11 +48,9 @@ Suppose Owners has just assigned pet 7 to owner 42. The example message below ca
 }
 ```
 
-In this design, Visits accepts new bookings only for pets marked as active in its local copy. Here, `active` is `true`, so pet 7 can be booked for owner 42.
+When the receptionist submits a booking, Visits checks that its local copy lists the pet as active and assigns it to the selected owner. With the details above, pet 7 can be booked for owner 42. Now suppose the pet moves to owner 56. Until Visits applies that update, a booking for owner 42 can still pass the local check. Once Visits applies it, new bookings use owner 56. Existing visits keep the owner recorded at booking.
 
-Owners assigns a higher version each time it changes that pet's record. Visits stores the owner ID, active status and version together. If version 7 arrives twice, or version 6 arrives after version 7, Visits keeps version 7. This works because each message contains all the fields Visits needs for that pet. To start with a complete list, Visits also needs the existing pets, for example from an initial copy followed by all later updates.
-
-A version number cannot deliver a missing message. One way to handle a crash in Owners is a **transactional outbox**. Owners saves the pet change and the outgoing event in the same database transaction. A background process can then send the event, retrying if delivery fails. A retry can produce a duplicate, which is why Visits checks the version as it applies the update. <sup><a href="#ref-4">[4]</a></sup>
+For that to work, Visits needs an initial copy of the pets and a way to keep it up to date. Each change carries all the fields Visits needs for that pet and a higher `version`, so Visits can ignore duplicate or older updates. With a **transactional outbox**, Owners saves the change and its outgoing event in the same transaction. A background process can then send the event and retry if needed. <sup><a href="#ref-4">[4]</a></sup>
 
 ### What happens when the copy is behind?
 
@@ -60,7 +58,7 @@ A version number cannot deliver a missing message. One way to handle a crash in 
 | --- | --- |
 | Owners is down. Visits already knows the selected owner and pet, and its copy marks the pet as active. | Open Visits directly and book using the local record. |
 | Owners registered a new pet, but Visits has not received the update. | Try the numbers again once the update arrives. Visits cannot confirm a booking for an unknown pet. |
-| Owners transferred the pet from owner 42 to owner 56. Visits still has version 7. | A booking for owner 42 can still pass the local check. Once the transfer arrives, new bookings use owner 56. Existing visits keep the owner recorded at booking. |
+| Visits has yet to apply the transfer from owner 42 to owner 56. | A booking for owner 42 can still pass the local check. |
 
 That last case is the decision to discuss with the clinic. If it accepts a delay in ownership updates, Visits can keep booking through an Owners outage. If every booking must reflect the latest transfer, a local copy alone cannot meet the rule. The team could keep the ownership change and booking check inside the same transaction boundary. Simply sending messages more often would shorten the usual delay without removing it.
 

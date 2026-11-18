@@ -24,34 +24,7 @@ Follow a request from the browser in the diagram below to see which parts run to
 
 ## How the application records a visit
 
-When a receptionist submits the visit form, the HTTP request in the diagram reaches `VisitController`. This is where Spring PetClinic handles the form and checks the visit date. The constructor gives the controller the `OwnerRepository` it will use to save the updated owner. <sup><a href="#ref-2">[2]</a></sup>
-
-**Original Spring PetClinic · <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L45-L49" target="_blank" rel="noopener noreferrer"><code>VisitController.java</code></a>**
-
-```java
-private final OwnerRepository owners;
-
-public VisitController(OwnerRepository owners) {
-    this.owners = owners;
-}
-```
-
-Once the form data passes validation, the controller records the visit in two steps. <sup><a href="#ref-2">[2]</a></sup>
-
-**Original Spring PetClinic · <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L108-L109" target="_blank" rel="noopener noreferrer"><code>VisitController.java</code></a>**
-
-```java
-owner.addVisit(petId, visit);
-this.owners.save(owner);
-```
-
-The first line adds the visit to the pet in memory. The second asks the repository to save the updated owner. In the PostgreSQL setup shown above, saving that change needs the database connection shown by the SQL arrow.
-
-Both code examples come from `VisitController.java`, copyright 2012–2025 the original authors, licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
-
-Suppose a receptionist books a visit and later cannot find it on the owner's page. A developer can start Spring PetClinic locally, submit the form and follow the call from the controller to `owners.save(owner)` in a debugger. The default H2 database runs in memory, so the developer can trace the booking without starting a database server. With the PostgreSQL setup shown in the diagram, the controller still calls the repository within the application process, but saving the visit also depends on a working database connection. <sup><a href="#ref-2">[2]</a></sup> <sup><a href="#ref-3">[3]</a></sup>
-
-Where should the date check go if the pet clinic later offers a second way to book a visit? Both entry points would need the same rule. The team could move the check into a booking service and have the controller call it. This would change where developers find the rule and how they reuse it. The controller and service would still be deployed together as part of the monolith. <sup><a href="#ref-1">[1]</a></sup> <sup><a href="#ref-2">[2]</a></sup> The [Visit use case](../visit-use-case/) explains how the original controller handles a booking.
+When a receptionist submits the form, `VisitController` handles the request and calls `OwnerRepository` to save the updated owner. Both run inside the same application instance. In the setup shown above, PostgreSQL runs separately, and PetClinic connects to it to store the visit. You can follow the booking [through the original Java code](../visit-use-case/#what-happens-in-the-code). <sup><a href="#ref-2">[2]</a></sup> <sup><a href="#ref-3">[3]</a></sup>
 
 ## What one release boundary means
 
@@ -73,7 +46,7 @@ For the pet clinic, the choice depends on what is getting in the team's way. If 
 **[1]** James Lewis and Martin Fowler, "[Microservices](https://martinfowler.com/articles/microservices.html)," martinfowler.com, 25 March 2014, introduction and sections "Componentization via Services" and "Design for failure." Accessed 17 November 2026.
 
 <a id="ref-2"></a>
-**[2]** Spring Projects contributors, *Spring PetClinic*, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, <a href="https://github.com/guendeti/spring-petclinic/tree/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic" target="_blank" rel="noopener noreferrer">source folder</a> with the packages `owner`, `vet`, `system` and `model`, <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/pom.xml" target="_blank" rel="noopener noreferrer">pom.xml</a> and <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L95-L109" target="_blank" rel="noopener noreferrer">VisitController.java</a> for date validation and saving. The code excerpts above link to the exact lines. Accessed 17 November 2026.
+**[2]** Spring Projects contributors, *Spring PetClinic*, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, <a href="https://github.com/guendeti/spring-petclinic/tree/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic" target="_blank" rel="noopener noreferrer">source folder</a> with the packages `owner`, `vet`, `system` and `model`, <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/pom.xml" target="_blank" rel="noopener noreferrer">pom.xml</a> and <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L95-L109" target="_blank" rel="noopener noreferrer">VisitController.java</a> for date validation and saving. Accessed 17 November 2026.
 
 <a id="ref-3"></a>
 **[3]** Spring Projects contributors, *Spring PetClinic*, repository `spring-projects/spring-petclinic`, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, README sections on <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/README.md#L14-L36" target="_blank" rel="noopener noreferrer">running the application locally</a>, <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/README.md#L43-L56" target="_blank" rel="noopener noreferrer">building and running the container image</a> and <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/README.md#L62-L70" target="_blank" rel="noopener noreferrer">database configuration</a>. Accessed 17 November 2026.

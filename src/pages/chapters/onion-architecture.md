@@ -20,7 +20,7 @@ Start in the centre of the diagram. The **domain model** represents the business
 <figcaption>Selected source code dependencies in our booking variant. The controller uses the application service. The repository implementation and the domain test can depend directly on types in the centre.</figcaption>
 </figure>
 
-The original Spring PetClinic checks the date in its web controller and saves the updated owner through `OwnerRepository`. <sup><a href="#ref-2">[2]</a></sup> Our working copy adds the Onion variant in `visits.onion`. We keep its small domain model and its repository interface together in the `domain` package. Two classes with similar names have different jobs here: `PetOwnerRepository` describes what booking needs, and the existing Spring Data `OwnerRepository` gives the outer implementation access to stored owners.
+The original Spring PetClinic checks the date in its web controller and saves the updated owner through `OwnerRepository`. <sup><a href="#ref-2">[2]</a></sup> In our Onion variant, `PetOwnerRepository` sits beside `PetOwner` in the `domain` package. In Palermo's description, repository interfaces typically sit in the ring around the domain model. <sup><a href="#ref-1">[1]</a></sup> `PetOwnerRepository` describes what booking needs, while the existing Spring Data `OwnerRepository` gives the outer implementation access to stored owners.
 
 ## How the domain decides whether to accept a visit
 
