@@ -3,7 +3,7 @@ layout: ../../layouts/ChapterLayout.astro
 title: 'Clean Architecture'
 ---
 
-Suppose a receptionist at the pet clinic tries to book a visit for today. In [Spring PetClinic](../what-is-software-architecture/#about-the-spring-petclinic-example), the visit date must be in the future. A web form, a file import and an automated test could all ask the same question: can this visit be booked? Clean Architecture puts that decision in a use case that can run independently of the web framework and the database. <sup><a href="#ref-1">[1]</a></sup>
+Suppose a receptionist at the pet clinic tries to book a visit for today. When the form supplies a date, the original [Spring PetClinic](../what-is-software-architecture/#about-the-spring-petclinic-example) controller rejects today and earlier dates. A web form, a file import and an automated test could all ask the same question: can this visit be booked? Clean Architecture puts that decision in a use case that can run independently of the web framework and the database. <sup><a href="#ref-1">[1]</a></sup>
 
 ## TL;DR
 
@@ -102,7 +102,7 @@ public class BookVisitInteractor implements BookVisitUseCase {
 }
 ```
 
-For today, a past date or a missing date, the interactor throws `InvalidVisitDateException` before making any storage call. For tomorrow, it asks the store whether the selected pet belongs to the owner. Only a positive answer reaches `addVisit`. As in our layered version, rejecting a missing date is a deliberate change: the original controller skips its date check when the date is missing. <sup><a href="#ref-2">[2]</a></sup>
+For today, a past date or a missing date, the interactor throws `InvalidVisitDateException` before calling `VisitStore`. The web controller still loads the owner and pet when it shows the form again. For tomorrow, the interactor asks the store whether the selected pet belongs to the owner. Only a positive answer reaches `addVisit`. As in our layered version, rejecting a missing date is a deliberate change: the original controller skips its date check when the date is missing. <sup><a href="#ref-2">[2]</a></sup>
 
 The description follows a different path. The web adapter checks that it contains text and is at most 255 characters long. The interactor passes it to the store. A caller using the input port directly gets the date and ownership checks, but must arrange description validation if it needs the same feedback as the form.
 
