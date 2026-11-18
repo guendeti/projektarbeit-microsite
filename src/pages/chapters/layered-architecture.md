@@ -30,7 +30,7 @@ To see how the layers work together in our variant, follow the solid arrows from
 
 In the [original booking code](../visit-use-case/#what-happens-in-the-code), the controller checks the visit date and adds a field error when the date is too early. <sup><a href="#ref-2">[2]</a></sup> In our variant, `VisitService.bookVisit` gives both the form and a possible import job the same operation to call. The caller supplies the booking details, and the service coordinates the checks and the save. That is the role of the **service layer**. <sup><a href="#ref-3">[3]</a></sup>
 
-**Our refactoring · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/layered/VisitService.java#L34-L46" target="_blank" rel="noopener noreferrer"><code>VisitService.java</code></a>**
+<p class="code-source"><span><strong>VisitService.java</strong><small>Our refactoring</small></span><a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/layered/VisitService.java#L34-L46" target="_blank" rel="noopener noreferrer" aria-label="View VisitService.java on GitHub (opens in a new tab)">View on GitHub</a></p>
 
 ```java
 public void bookVisit(int ownerId, int petId, Visit visit) {
@@ -48,7 +48,7 @@ public void bookVisit(int ownerId, int petId, Visit visit) {
 }
 ```
 
-The first check runs before the service reads any owner records. Today and earlier dates are rejected. There is also one deliberate change from the original: the original date check skips a missing date, while the service rejects it. For a future date, the service loads the owner and looks for the pet among that owner's pets. Once both checks pass, `addVisit` updates the pet in memory and `save` asks the repository to store the updated owner. <sup><a href="#ref-2">[2]</a></sup>
+The first check rejects a `null` date, today's date or an earlier date before the service reads any owner records. For the behaviour of the original form, see [what happens when the request has no date](../visit-use-case/#what-if-the-request-has-no-date). For a future date, the service loads the owner and looks for the pet among that owner's pets. Once both checks pass, `addVisit` updates the pet in memory and `save` asks the repository to store the updated owner.
 
 The <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/layered/LayeredVisitController.java#L74-L85" target="_blank" rel="noopener noreferrer">controller</a> calls the service and turns a date exception into an error beside the date field. An import job could catch the same exception and report which row in the file needs fixing.
 
@@ -77,5 +77,3 @@ For the pet clinic, the extra service earns its place by giving the web form and
 
 <a id="ref-4"></a>
 **[4]** Jeffrey Palermo, “[The Onion Architecture: Part 1](https://jeffreypalermo.com/2008/07/the-onion-architecture-part-1/),” 29 July 2008, discussion of dependencies on data access in traditional layered applications. Accessed 18 November 2026.
-
-Return to [The Visit use case](../visit-use-case/). Continue with [Clean Architecture](../clean-architecture/).

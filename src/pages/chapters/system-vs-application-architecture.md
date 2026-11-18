@@ -70,5 +70,3 @@ As we can see, separating functionality into services involves more than reorgan
 
 <a id="ref-4"></a>
 **[4]** Robert C. Martin, ["The Clean Architecture"](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html), 13 August 2012, introduction and section "The Dependency Rule." Original article. Accessed 3 November 2026.
-
-Return to [What is software architecture?](../what-is-software-architecture/). Continue with [Monolith](../monolith/).

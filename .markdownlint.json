@@ -4,11 +4,27 @@
   "MD033": {
     "allowed_elements": [
       "a",
+      "button",
+      "code",
+      "dd",
       "div",
-      "figure",
+      "dl",
+      "dt",
       "figcaption",
+      "figure",
+      "h3",
+      "h4",
       "img",
-      "sup"
+      "li",
+      "ol",
+      "p",
+      "script",
+      "section",
+      "small",
+      "span",
+      "strong",
+      "sup",
+      "ul"
     ]
   }
 }

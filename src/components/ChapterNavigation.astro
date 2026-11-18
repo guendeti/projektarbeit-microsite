@@ -1,0 +1,49 @@
+---
+import { base, chapterGroups } from '../data/navigation';
+
+const chapters = chapterGroups.flatMap(group => group.chapters);
+const path = Astro.url.pathname.replace(/\/$/, '');
+const current = chapters.findIndex(chapter => path === `${base}/chapters/${chapter.slug}`);
+const previous = current > 0 ? chapters[current - 1] : undefined;
+const next = current >= 0 ? chapters[current + 1] : undefined;
+---
+
+{(previous || next) && (
+  <nav class="chapter-navigation" aria-label="Previous and next chapters">
+    {previous && (
+      <a rel="prev" href={`${base}/chapters/${previous.slug}/`}>
+        <span>Previous chapter</span>
+        {previous.title}
+      </a>
+    )}
+    {next ? (
+      <a rel="next" href={`${base}/chapters/${next.slug}/`}>
+        <span>Next chapter</span>
+        {next.title}
+      </a>
+    ) : (
+      <a href={`${base}/chapters/${chapters[0].slug}/`}>
+        <span>Back to foundations</span>
+        {chapters[0].title}
+      </a>
+    )}
+  </nav>
+)}
+
+<style>
+  .chapter-navigation {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-block-start: var(--space-12);
+    padding-block-start: var(--space-4);
+    border-block-start: 1px solid var(--color-border);
+  }
+
+  span {
+    display: block;
+    color: var(--color-text-muted);
+    font-size: var(--text-small);
+  }
+</style>

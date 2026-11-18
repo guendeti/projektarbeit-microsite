@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="780" viewBox="0 0 960 780" role="img" aria-labelledby="title desc">
 <title id="title">Booking a visit in the original Spring PetClinic</title>
-<desc id="desc">GET loads the owner, selects the pet and prepares a new visit dated tomorrow before showing the form. A separate POST prepares again, binds and validates the form input, and checks that any supplied date is in the future. Errors return the form without an explicit save. Valid input is associated and saved, then redirected. The error and success paths are alternatives.</desc>
+<desc id="desc">GET loads the owner, selects the pet and prepares a new visit dated tomorrow before showing the form. A separate POST prepares again and binds and validates the form input. If a date is present after binding, it must be in the future. Errors return the form without an explicit save. Valid input is associated and saved, then redirected. The error and success paths are alternatives.</desc>
 <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#222"/></marker></defs>
 <rect width="960" height="780" fill="white"/>
 <g font-family="Arial, sans-serif" font-size="16" fill="#111">
@@ -17,7 +17,7 @@
 <text x="480" y="94">GET loads Owner, selects its Pet, creates and attaches a Visit in memory</text>
 <text x="480" y="122">Render the form without an explicit repository save</text>
 <text x="480" y="239">POST prepares the model again and binds and validates input</text>
-<text x="480" y="267">If a date was supplied, check that it is in the future</text>
+<text x="480" y="267">If the bound date is present, check that it is in the future</text>
 <text x="480" y="383">Binding or validation errors?</text>
 <text x="225" y="510">Return the form with errors</text>
 <text x="225" y="538">No explicit repository save in this branch</text>

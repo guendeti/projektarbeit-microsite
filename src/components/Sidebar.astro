@@ -2,9 +2,11 @@
 import { base, chapterGroups } from '../data/navigation';
 const currentPath = Astro.url.pathname.replace(/\/$/, '');
 ---
-<aside>
+<aside class="sidebar">
   <nav aria-label="Chapter navigation">
-    <a href={`${base}/`}>Home</a>
+    <a class="site-name" href={`${base}/`} aria-current={currentPath === base ? 'page' : undefined}>
+      Software architecture
+    </a>
     {chapterGroups.map(group => (
       <section>
         <h2>{group.title}</h2>
@@ -22,3 +24,77 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '');
     ))}
   </nav>
 </aside>
+
+<style>
+  .sidebar {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    min-width: 0;
+    box-sizing: border-box;
+    block-size: 100dvh;
+    overflow-y: auto;
+    padding: var(--space-8) var(--space-4) var(--space-6);
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+    font-size: var(--text-small);
+  }
+
+  .site-name {
+    display: block;
+    margin-block-end: var(--space-8);
+    padding: var(--space-2) var(--space-3);
+    color: inherit;
+    font-size: var(--text-subsection);
+    font-weight: 700;
+    line-height: 1.15;
+    text-decoration: none;
+  }
+
+  section + section { margin-block-start: var(--space-6); }
+
+  h2 {
+    margin: 0 var(--space-3) var(--space-2);
+    color: inherit;
+    font-size: var(--text-small);
+    font-weight: 700;
+  }
+
+  ul {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li a {
+    display: block;
+    padding: var(--space-2) var(--space-3);
+    border-inline-start: 2px solid transparent;
+    border-radius: var(--radius);
+    color: inherit;
+    line-height: 1.25;
+    text-decoration: none;
+  }
+
+  a:hover { text-decoration: underline; }
+
+  a:focus-visible { outline-color: var(--color-on-accent); }
+
+  li a[aria-current='page'] {
+    border-inline-start-color: var(--color-on-accent);
+    background: var(--color-accent-dark);
+    font-weight: 700;
+  }
+
+  @media (max-width: 48rem) {
+    .sidebar {
+      position: static;
+      block-size: auto;
+      padding: var(--space-4);
+    }
+
+    .site-name { margin-block-end: var(--space-3); }
+  }
+</style>

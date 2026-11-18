@@ -56,5 +56,3 @@ Back in our clinic example, the team can change how it stores contact details an
 
 <a id="ref-4"></a>
 **[4]** James Lewis and Martin Fowler, "[Microservices](https://martinfowler.com/articles/microservices.html)," 25 March 2014, introduction and "Componentization via Services." Accessed 17 November 2026.
-
-Return to [Monolith](../monolith/). Continue with [Microservices](../microservices/).

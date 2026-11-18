@@ -53,5 +53,3 @@ For the pet clinic, the choice depends on what is getting in the team's way. If 
 
 <a id="ref-4"></a>
 **[4]** Martin Fowler, "[Monolith First](https://martinfowler.com/bliki/MonolithFirst.html)," martinfowler.com, 3 June 2015. Accessed 17 November 2026.
-
-Return to [System vs. application architecture](../system-vs-application-architecture/). Continue with [Modular Monolith](../modular-monolith/).

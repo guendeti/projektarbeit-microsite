@@ -3,7 +3,7 @@ layout: ../../layouts/ChapterLayout.astro
 title: 'Clean Architecture'
 ---
 
-Suppose a receptionist at the pet clinic tries to book a visit for today. When the form supplies a date, the original [Spring PetClinic](../what-is-software-architecture/#about-the-spring-petclinic-example) controller rejects today and earlier dates. A web form, a file import and an automated test could all ask the same question: can this visit be booked? Clean Architecture puts that decision in a use case that can run independently of the web framework and the database. <sup><a href="#ref-1">[1]</a></sup>
+Suppose a receptionist at the pet clinic tries to book a visit for today. The original [Spring PetClinic](../what-is-software-architecture/#about-the-spring-petclinic-example) controller rejects today and earlier dates. A web form, a file import and an automated test could all ask the same question: can this visit be booked? Clean Architecture puts that decision in a use case that can run independently of the web framework and the database. <sup><a href="#ref-1">[1]</a></sup>
 
 ## TL;DR
 
@@ -14,10 +14,10 @@ The booking code defines the storage operations it needs. A database adapter imp
 Read the diagram from the centre outward. **Entities** hold business rules that can apply across applications. **Use cases** carry out tasks in a particular application, such as booking a visit. **Interface adapters** translate between the use case and a particular way of entering, displaying or storing data. **Frameworks and drivers** include the web framework, the database and the code that connects these tools to the application. <sup><a href="#ref-1">[1]</a></sup>
 
 <figure class="architecture-figure">
-<div class="diagram-scroll" tabindex="0" role="region" aria-label="Clean Architecture layers and inward source dependencies. Scroll horizontally to see the complete figure.">
-<img src="../../diagrams/clean-architecture-layers.svg" alt="Nested areas from outside to inside. Frameworks and drivers surround interface adapters, use cases and entities. Source dependency arrows point inward toward business rules." style="max-width:100%;height:auto" />
-</div>
-<figcaption>The responsibility areas of Clean Architecture. Arrows show the permitted direction of source code dependencies. Own diagram based on the original description. <sup><a href="#ref-1">[1]</a></sup></figcaption>
+  <div class="diagram-scroll" tabindex="0" role="region" aria-label="Clean Architecture layers and inward source dependencies">
+    <img src="../../diagrams/clean-architecture-layers.svg" alt="Nested areas from outside to inside. Frameworks and drivers surround interface adapters, use cases and entities. Source dependency arrows point inward toward business rules." />
+  </div>
+  <figcaption>The responsibility areas of Clean Architecture. Arrows show the permitted direction of source code dependencies. Own diagram based on the original description. <sup><a href="#ref-1">[1]</a></sup></figcaption>
 </figure>
 
 The arrows show which code may refer to which types. Across a boundary, source code dependencies point inward. For example, a controller may refer to a booking interface defined in the core. If the core accepted Spring MVC's form-validation result, it would acquire a dependency back on the web framework. The number of circles can vary. <sup><a href="#ref-1">[1]</a></sup>
@@ -30,48 +30,48 @@ In the official application, the controller checks the date and saves an updated
 
 Our Clean version still saves the visit through a JPA adapter. Let's follow that call, then look at which types the booking code actually names.
 
-<link rel="stylesheet" href="../../interactions/clean-visit.css">
-<section class="clean-visit" aria-labelledby="clean-visit-title" data-view="runtime" hidden>
-  <h3 id="clean-visit-title">One booking, two views</h3>
-  <p>Leo's visit is booked for tomorrow. Follow the call that saves the visit, then compare it with what each class needs to know in the source code.</p>
-  <div class="clean-visit-controls" role="group" aria-label="Diagram view">
-    <button type="button" data-show-view="runtime" aria-pressed="true">Runtime call</button>
-    <button type="button" data-show-view="dependency" aria-pressed="false">Source dependencies</button>
-  </div>
-  <div class="clean-visit-graph" aria-hidden="true">
-    <div class="clean-visit-core">
-      <span class="clean-visit-region">Booking core</span>
-      <div class="clean-visit-core-flow">
-        <code class="clean-visit-node">BookVisitInteractor</code>
-        <span class="clean-visit-edge"><span data-core-relation>calls through</span></span>
-        <code class="clean-visit-node">VisitStore</code>
+<div data-clean-booking-views>
+  <section class="interaction clean-visit" data-clean-visit aria-labelledby="clean-visit-title" data-view="runtime" hidden>
+    <h3 id="clean-visit-title">One booking, two views</h3>
+    <p>Suppose the receptionist books a visit for tomorrow. Follow the call that saves the visit, then compare it with what each class needs to know in the source code.</p>
+    <div class="interaction-controls" role="group" aria-label="Diagram view">
+      <button type="button" data-show-view="runtime" aria-pressed="true">Runtime call</button>
+      <button type="button" data-show-view="dependency" aria-pressed="false">Source dependencies</button>
+    </div>
+    <div class="clean-visit-graph" aria-hidden="true">
+      <div class="clean-visit-core">
+        <span class="clean-visit-region">Booking core</span>
+        <div class="clean-visit-core-flow">
+          <code class="clean-visit-node">BookVisitInteractor</code>
+          <span class="clean-visit-edge"><span data-core-relation>calls through</span></span>
+          <code class="clean-visit-node">VisitStore</code>
+        </div>
+      </div>
+      <span class="clean-visit-edge clean-visit-crossing"><span data-boundary-relation>dispatches to</span></span>
+      <div class="clean-visit-adapter">
+        <span class="clean-visit-region">Persistence adapter</span>
+        <code class="clean-visit-node">JpaVisitStore</code>
       </div>
     </div>
-    <span class="clean-visit-edge clean-visit-crossing"><span data-boundary-relation>dispatches to</span></span>
-    <div class="clean-visit-adapter">
-      <span class="clean-visit-region">Persistence adapter</span>
-      <code class="clean-visit-node">JpaVisitStore</code>
+    <div class="interaction-result" role="status">
+      <p data-evidence="runtime">The interactor calls <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/clean/core/BookVisitInteractor.java#L36" target="_blank" rel="noopener noreferrer"><code>visitStore.addVisit(ownerId, petId, date, description);</code></a> through the interface. Java runs the JPA adapter's implementation.</p>
+      <div data-evidence="dependency" hidden>
+        <p>The interactor names <code>VisitStore</code>. The JPA adapter implements that interface, so its source code depends on the core.</p>
+        <ul>
+          <li><a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/clean/core/BookVisitInteractor.java#L22" target="_blank" rel="noopener noreferrer"><code>private final VisitStore visitStore;</code></a></li>
+          <li><a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/clean/persistence/JpaVisitStore.java#L25" target="_blank" rel="noopener noreferrer"><code>public class JpaVisitStore implements VisitStore</code></a></li>
+        </ul>
+      </div>
     </div>
-  </div>
-  <div class="clean-visit-evidence">
-    <p data-evidence="runtime">The interactor calls <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/clean/core/BookVisitInteractor.java#L36" target="_blank" rel="noopener noreferrer"><code>visitStore.addVisit(ownerId, petId, date, description);</code></a> through the interface. Java runs the JPA adapter's implementation.</p>
-    <div data-evidence="dependency" hidden>
-      <p>The interactor names <code>VisitStore</code>. The JPA adapter implements that interface, so its source code depends on the core.</p>
-      <ul>
-        <li><a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/clean/core/BookVisitInteractor.java#L22" target="_blank" rel="noopener noreferrer"><code>private final VisitStore visitStore;</code></a></li>
-        <li><a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/clean/persistence/JpaVisitStore.java#L25" target="_blank" rel="noopener noreferrer"><code>public class JpaVisitStore implements VisitStore</code></a></li>
-      </ul>
+  </section>
+  <figure class="architecture-figure" id="clean-visit-fallback">
+    <div class="diagram-scroll" tabindex="0" role="region" aria-label="Source dependencies in the Clean booking variant">
+      <img src="../../diagrams/clean-dependencies.svg" alt="CleanVisitController uses the input port BookVisitUseCase. BookVisitInteractor implements it and uses the output port VisitStore. JpaVisitStore implements VisitStore and uses OwnerRepository and the JPA entities. All dependencies that cross the core boundary point into the core." />
     </div>
-  </div>
-</section>
-<script type="module" src="../../interactions/clean-visit.js"></script>
-
-<figure class="architecture-figure" id="clean-visit-fallback">
-<div class="diagram-scroll" tabindex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
-<img src="../../diagrams/clean-dependencies.svg" alt="CleanVisitController uses the input port BookVisitUseCase. BookVisitInteractor implements it and uses the output port VisitStore. JpaVisitStore implements VisitStore and uses OwnerRepository and the JPA entities. All dependencies that cross the core boundary point into the core." style="max-width:100%;height:auto" />
+    <figcaption>Source code dependencies in our Clean variant. Every arrow that crosses the boundary of the core points into it.</figcaption>
+  </figure>
 </div>
-<figcaption>Source code dependencies in our Clean variant. Every arrow that crosses the boundary of the core points into it.</figcaption>
-</figure>
+<script type="module" src="../../interactions/clean-visit.js"></script>
 
 The use case calls out to the persistence adapter at runtime. In the source code, the adapter depends on the core because it implements the interface defined there. This is **dependency inversion**. Martin illustrates the same idea with a presenter that receives use case results. Here it lets the core call storage through an interface it owns. <sup><a href="#ref-1">[1]</a></sup>
 
@@ -81,7 +81,7 @@ The **input port**, <a href="https://github.com/guendeti/spring-petclinic/blob/b
 
 The **output port** in our example describes what the use case needs from storage. Read the two methods as a question and an action. The first asks whether this owner has this pet. The second records a visit once the checks pass.
 
-**Our refactoring · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/clean/core/VisitStore.java#L20-L26" target="_blank" rel="noopener noreferrer"><code>VisitStore.java</code></a>**
+<p class="code-source"><span><strong>VisitStore.java</strong><small>Our refactoring</small></span><a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/clean/core/VisitStore.java#L20-L26" target="_blank" rel="noopener noreferrer" aria-label="View VisitStore.java on GitHub (opens in a new tab)">View on GitHub</a></p>
 
 ```java
 public interface VisitStore {
@@ -99,7 +99,7 @@ When the use case asks whether the pet belongs to the owner, it receives a boole
 
 An **interactor** is the class that carries out a use case. In the code below, follow what happens first for today's date, then for tomorrow's.
 
-**Our refactoring · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/clean/core/BookVisitInteractor.java#L20-L39" target="_blank" rel="noopener noreferrer"><code>BookVisitInteractor.java</code></a>**
+<p class="code-source"><span><strong>BookVisitInteractor.java</strong><small>Our refactoring</small></span><a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/clean/core/BookVisitInteractor.java#L20-L39" target="_blank" rel="noopener noreferrer" aria-label="View BookVisitInteractor.java on GitHub (opens in a new tab)">View on GitHub</a></p>
 
 ```java
 public class BookVisitInteractor implements BookVisitUseCase {
@@ -124,7 +124,7 @@ public class BookVisitInteractor implements BookVisitUseCase {
 }
 ```
 
-For today, a past date or a missing date, the interactor throws `InvalidVisitDateException` before calling `VisitStore`. The web controller still loads the owner and pet when it shows the form again. For tomorrow, the interactor asks the store whether the selected pet belongs to the owner. Only a positive answer reaches `addVisit`. As in our layered version, rejecting a missing date is a deliberate change: the original controller skips its date check when the date is missing. <sup><a href="#ref-2">[2]</a></sup>
+For today, a past date or a `null` date, the interactor throws `InvalidVisitDateException` before calling `VisitStore`. The web controller still loads the owner and pet when it shows the form again. For tomorrow, the interactor asks the store whether the selected pet belongs to the owner. Only a positive answer reaches `addVisit`. The [Visit use case](../visit-use-case/#what-if-the-request-has-no-date) explains what produces a `null` date at the form and how the original behaves.
 
 The description follows a different path. The web adapter checks that it contains text and is at most 255 characters long. The interactor passes it to the store. A caller using the input port directly gets the date and ownership checks, but must arrange description validation if it needs the same feedback as the form.
 
@@ -136,7 +136,7 @@ On the storage side, <a href="https://github.com/guendeti/spring-petclinic/blob/
 
 The configuration below makes the choice of store explicit. Spring supplies the repository. The configuration wraps it in a `JpaVisitStore` and gives that adapter to the interactor.
 
-**Our refactoring · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/clean/config/CleanVisitConfiguration.java#L28-L31" target="_blank" rel="noopener noreferrer"><code>CleanVisitConfiguration.java</code></a>**
+<p class="code-source"><span><strong>CleanVisitConfiguration.java</strong><small>Our refactoring</small></span><a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/clean/config/CleanVisitConfiguration.java#L28-L31" target="_blank" rel="noopener noreferrer" aria-label="View CleanVisitConfiguration.java on GitHub (opens in a new tab)">View on GitHub</a></p>
 
 ```java
 @Bean
@@ -158,5 +158,3 @@ For a small clinic with one form, the [layered service](../layered-architecture/
 
 <a id="ref-2"></a>
 **[2]** Spring Projects contributors, *Spring PetClinic*, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L95-L109" target="_blank" rel="noopener noreferrer">original visit form handler</a> and <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/Visit.java#L33-L45" target="_blank" rel="noopener noreferrer">mapped visit and form fields</a>. Accessed 18 November 2026.
-
-Return to [Layered Architecture](../layered-architecture/). Continue with [Hexagonal Architecture / Ports and Adapters](../hexagonal-architecture/).

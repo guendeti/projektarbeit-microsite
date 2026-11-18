@@ -57,5 +57,3 @@ Throughout the site, **Original Spring PetClinic** identifies code from the [off
 
 <a id="ref-5"></a>
 **[5]** Spring Projects contributors, *Spring PetClinic*, repository `spring-projects/spring-petclinic`, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/README.md" target="_blank" rel="noopener noreferrer">README.md</a>, sample application, and <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L95-L109" target="_blank" rel="noopener noreferrer">VisitController.java</a> for the date check and save. Pinned source. Accessed in the local checkout, 3 November 2026.
-
-Continue with [System vs. application architecture](../system-vs-application-architecture/).

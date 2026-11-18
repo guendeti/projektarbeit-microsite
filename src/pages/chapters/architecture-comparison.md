@@ -7,11 +7,11 @@ Suppose a receptionist at the pet clinic tries to book a visit for today. The fo
 
 ## TL;DR
 
-In the original application, the web controller checks the date. In our layered version, an import could call a service that still uses the existing owner repository. Our Clean and Hexagonal chapters look at the same implementation: the booking use case defines what it needs from storage, and a test can supply that storage in memory. In our Onion version, an owner object can decide whether to accept a visit using the pet IDs it already holds. <sup><a href="#ref-1">[1]</a></sup>
+In the original application, the web controller checks the date. <sup><a href="#ref-1">[1]</a></sup> In our layered version, an import could call a service that still uses the existing owner repository. Our Clean and Hexagonal chapters look at the same implementation: the booking use case defines what it needs from storage, and a test can supply that storage in memory. In our Onion version, an owner object can decide whether to accept a visit using the pet IDs it already holds. <sup><a href="#ref-2">[2]</a></sup>
 
 ## Following the same booking through the code
 
-Follow the same booking for an existing owner, first in the original application and then in our three variants. The links take you to the corresponding diagrams and code. <sup><a href="#ref-1">[1]</a></sup>
+Follow the same booking for an existing owner, first in the original application and then in our three variants. The links take you to the corresponding diagrams and code. <sup><a href="#ref-1">[1]</a></sup> <sup><a href="#ref-2">[2]</a></sup>
 
 | Implementation | What happens when the date is today? | What happens with a future date and the right pet? |
 | --- | --- | --- |
@@ -20,17 +20,17 @@ Follow the same booking for an existing owner, first in the original application
 | [Clean](../clean-architecture/#where-the-boundary-falls-in-spring-petclinic) and [Hexagonal](../hexagonal-architecture/#the-same-code-seen-as-ports-and-adapters) | `BookVisitInteractor` rejects the date before it calls `VisitStore`. | The interactor asks the store whether the pet belongs to the owner, then calls `addVisit`. The JPA adapter does the database work. |
 | [Onion](../onion-architecture/#reading-the-rings) | `VisitBookingService` first loads a `PetOwner`. The domain object rejects the date, so the service never asks the repository to add the visit. | The domain object returns a `NewVisit`. The service hands that value to the repository to be stored. |
 
-Look at the successful booking in Layered and Clean. Both reach the database, but the layered service names a Spring Data repository, while the Clean adapter names an interface defined in the booking core. The call still reaches storage at runtime. The source dependency across that boundary has changed direction. Clean, Hexagonal and Onion use that idea to keep rules independent of web and database code. Martin draws on both Cockburn and Palermo. <sup><a href="#ref-2">[2]</a></sup> <sup><a href="#ref-3">[3]</a></sup>
+Look at the successful booking in Layered and Clean. Both reach the database, but the layered service names a Spring Data repository, while the Clean adapter names an interface defined in the booking core. The call still reaches storage at runtime. The source dependency across that boundary has changed direction. Clean, Hexagonal and Onion use that idea to keep rules independent of web and database code. Martin draws on both Cockburn and Palermo. <sup><a href="#ref-3">[3]</a></sup> <sup><a href="#ref-4">[4]</a></sup>
 
 These are differences you can observe in our code. For example, a date-only **domain test** in the Onion variant can construct an owner and supply a fixed value for today. Calling the full Onion **service** for the same date still requires an owner lookup. In the layered and Clean variants, a bad date stops the service or interactor before its first lookup. In all three web variants, showing the form again after an error can still read owner and pet details. This is why it matters whether a test starts at the form, the booking operation or the domain object. [How the variants prepare the form](../visit-use-case/#our-refactorings)
 
-There is one deliberate behaviour change to keep in mind when comparing results. The original controller skips the date check for a missing date. All three refactorings reject a missing date. They also keep the description constraints on the form object. A caller that invokes a booking method directly must arrange that validation if it needs the same feedback as the receptionist. <sup><a href="#ref-1">[1]</a></sup>
+All three refactorings reject a `null` date. The [Visit use case](../visit-use-case/#what-if-the-request-has-no-date) explains how the original and the variants handle an omitted or empty date field. The refactorings keep the description constraints on the form object. A caller that invokes a booking method directly must arrange that validation if it needs the same feedback as the receptionist.
 
 ## What the shared tests establish
 
-Now consider a booking for tomorrow where the pet belongs to someone else. In the sample data, pet 2 belongs to owner 2. The test asks each of our three variants to book that pet for owner 1. <sup><a href="#ref-1">[1]</a></sup>
+Now consider a booking for tomorrow where the pet belongs to someone else. In the sample data, pet 2 belongs to owner 2. <sup><a href="#ref-1">[1]</a></sup> The test asks each of our three variants to book that pet for owner 1. <sup><a href="#ref-2">[2]</a></sup>
 
-**Our tests · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/test/java/org/springframework/samples/petclinic/visits/VisitBookingVariantsTests.java#L120-L124" target="_blank" rel="noopener noreferrer"><code>VisitBookingVariantsTests.java</code></a>**
+<p class="code-source"><span><strong>VisitBookingVariantsTests.java</strong><small>Our tests</small></span><a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/test/java/org/springframework/samples/petclinic/visits/VisitBookingVariantsTests.java#L120-L124" target="_blank" rel="noopener noreferrer" aria-label="View VisitBookingVariantsTests.java on GitHub (opens in a new tab)">View on GitHub</a></p>
 
 ```java
 @ParameterizedTest
@@ -46,9 +46,9 @@ There is a limit to what the passing tests tell us. The shared tests run inside 
 
 ## How to choose for the pet clinic
 
-- **The clinic adds a file import.** A layered service already offers one place for the form and the import to enforce the date rule. The importer must supply the `Visit` type the service expects. This can be a reasonable cost while both callers use the same data model. <sup><a href="#ref-2">[2]</a></sup>
-- **The booking team wants to exercise its whole use case without Spring Data.** The Clean and Hexagonal implementation gives the team a small storage interface it can implement in memory. That buys a specific test: the same operation used by the form can run against known owner and pet data. The team must also maintain the real adapter and test its mapping. <sup><a href="#ref-3">[3]</a></sup> <sup><a href="#ref-4">[4]</a></sup>
-- **More decisions depend on the owner and their pets.** The Onion version gives those rules a home in `PetOwner`. Tests can supply exactly the pets and date a rule needs. The cost is building that model from stored records and translating the result back. Clean Architecture also allows rules in domain entities. Either design can use this idea when the rules justify it. <sup><a href="#ref-3">[3]</a></sup> <sup><a href="#ref-5">[5]</a></sup>
+- **The clinic adds a file import.** A layered service already offers one place for the form and the import to enforce the date rule. The importer must supply the `Visit` type the service expects. This can be a reasonable cost while both callers use the same data model. <sup><a href="#ref-3">[3]</a></sup>
+- **The booking team wants to exercise its whole use case without Spring Data.** The Clean and Hexagonal implementation gives the team a small storage interface it can implement in memory. That buys a specific test: the same operation used by the form can run against known owner and pet data. The team must also maintain the real adapter and test its mapping. <sup><a href="#ref-4">[4]</a></sup> <sup><a href="#ref-5">[5]</a></sup>
+- **More decisions depend on the owner and their pets.** The Onion version gives those rules a home in `PetOwner`. Tests can supply exactly the pets and date a rule needs. The cost is building that model from stored records and translating the result back. Clean Architecture also allows rules in domain entities. Either design can use this idea when the rules justify it. <sup><a href="#ref-4">[4]</a></sup> <sup><a href="#ref-6">[6]</a></sup>
 
 ## Trying the variants yourself
 
@@ -69,15 +69,16 @@ For a visible comparison, enter tomorrow's date and a short description. A succe
 **[1]** Spring Projects contributors, *Spring PetClinic*, commit `500158f732419217507c7656904b8e6aa1bcc0d6`, <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L63-L111" target="_blank" rel="noopener noreferrer">visit form setup and submission</a>, <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/Visit.java#L39-L45" target="_blank" rel="noopener noreferrer">date and description fields</a> and <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/resources/db/h2/data.sql#L18-L37" target="_blank" rel="noopener noreferrer">H2 sample data for owners and pets</a>. Accessed 18 November 2026.
 
 <a id="ref-2"></a>
-**[2]** Martin Fowler, “[Presentation Domain Data Layering](https://martinfowler.com/bliki/PresentationDomainDataLayering.html),” 26 August 2015. Accessed 18 November 2026.
+**[2]** Project fork, *Spring PetClinic Visit examples*, commit `bdd7783bf9c778882b7ec77e0f0a2f402e20b247`, <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/layered/VisitService.java#L34-L46" target="_blank" rel="noopener noreferrer">layered service</a>, <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/clean/core/BookVisitInteractor.java#L29-L37" target="_blank" rel="noopener noreferrer">Clean and Hexagonal use case</a>, <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/onion/application/VisitBookingService.java#L32-L37" target="_blank" rel="noopener noreferrer">Onion booking service</a>, <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/main/java/org/springframework/samples/petclinic/visits/onion/domain/PetOwner.java#L32-L41" target="_blank" rel="noopener noreferrer">Onion domain rule</a> and <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/test/java/org/springframework/samples/petclinic/visits/VisitBookingVariantsTests.java#L120-L124" target="_blank" rel="noopener noreferrer">shared test for a pet belonging to another owner</a>. Verified in the local checkout.
 
 <a id="ref-3"></a>
-**[3]** Robert C. Martin, “[The Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html),” 13 August 2012, sections “The Dependency Rule,” “Entities” and “Crossing boundaries.” Accessed 18 November 2026.
+**[3]** Martin Fowler, “[Presentation Domain Data Layering](https://martinfowler.com/bliki/PresentationDomainDataLayering.html),” 26 August 2015. Accessed 18 November 2026.
 
 <a id="ref-4"></a>
-**[4]** Alistair Cockburn, “[Hexagonal Architecture](https://alistair.cockburn.us/hexagonal-architecture/),” 4 September 2005, sections “Intent” and “Motivation.” Accessed 18 November 2026.
+**[4]** Robert C. Martin, “[The Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html),” 13 August 2012, sections “The Dependency Rule,” “Entities” and “Crossing boundaries.” Accessed 18 November 2026.
 
 <a id="ref-5"></a>
-**[5]** Jeffrey Palermo, “[The Onion Architecture: Part 1](https://jeffreypalermo.com/2008/07/the-onion-architecture-part-1/),” 29 July 2008. Accessed 18 November 2026.
+**[5]** Alistair Cockburn, “[Hexagonal Architecture](https://alistair.cockburn.us/hexagonal-architecture/),” 4 September 2005, sections “Intent” and “Motivation.” Accessed 18 November 2026.
 
-Return to [Onion Architecture](../onion-architecture/). Back to [What is software architecture?](../what-is-software-architecture/).
+<a id="ref-6"></a>
+**[6]** Jeffrey Palermo, “[The Onion Architecture: Part 1](https://jeffreypalermo.com/2008/07/the-onion-architecture-part-1/),” 29 July 2008. Accessed 18 November 2026.

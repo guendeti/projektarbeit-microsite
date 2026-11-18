@@ -1,5 +1,8 @@
 ---
 import SiteLayout from './SiteLayout.astro';
+import ChapterNavigation from '../components/ChapterNavigation.astro';
+import '../styles/chapter.css';
+import '../styles/interactions.css';
 
 interface Props {
   frontmatter: { title: string };
@@ -8,5 +11,8 @@ interface Props {
 const { frontmatter } = Astro.props;
 ---
 <SiteLayout title={frontmatter.title}>
-  <slot />
+  <div class="chapter">
+    <slot />
+    <ChapterNavigation />
+  </div>
 </SiteLayout>

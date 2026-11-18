@@ -40,7 +40,7 @@ The **API gateway** gives the browser one address and forwards each request to t
 
 In the official application, the controller first loads the owner. It then looks for the selected pet among that owner's pets. This matters because finding a pet somewhere in the clinic would answer a different question. <sup><a href="#ref-2">[2]</a></sup>
 
-**Original Spring PetClinic · <a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L70-L74" target="_blank" rel="noopener noreferrer"><code>VisitController.java</code></a>**
+<p class="code-source"><span><strong>VisitController.java</strong><small>Original Spring PetClinic</small></span><a href="https://github.com/guendeti/spring-petclinic/blob/500158f732419217507c7656904b8e6aa1bcc0d6/src/main/java/org/springframework/samples/petclinic/owner/VisitController.java#L70-L74" target="_blank" rel="noopener noreferrer" aria-label="View VisitController.java on GitHub (opens in a new tab)">View on GitHub</a></p>
 
 ```java
 Pet pet = owner.getPet(petId);
@@ -54,11 +54,33 @@ Excerpt from `VisitController.java`, copyright 2012–2025 the original authors,
 
 In our proposed split, Visits still needs to answer the same question. Suppose the receptionist selects pet 7 for owner 42 and submits a valid booking form. Visits asks Owners for `GET /owners/42/pets/7` and waits for a reply. This is a **synchronous call**. The outcome determines what Visits does next.
 
+<section class="interaction booking-scenario" data-booking-scenario="microservices" data-scenario-fallback="ownership-lookup-results" aria-labelledby="ownership-lookup-title" hidden>
+  <h3 id="ownership-lookup-title">What happens when Visits checks ownership?</h3>
+  <p>Choose what happens to the lookup. The booking form and the selected owner and pet stay the same.</p>
+  <div class="interaction-controls" role="group" aria-label="Result of the Owners lookup">
+    <button type="button" data-scenario="found" aria-pressed="true">200 OK</button>
+    <button type="button" data-scenario="notFound" aria-pressed="false">404 Not Found</button>
+    <button type="button" data-scenario="timeout" aria-pressed="false">Timeout</button>
+  </div>
+  <div class="interaction-result" role="status" aria-atomic="true">
+    <ol class="booking-scenario-track" aria-label="Booking request path">
+      <li><strong>Visits</strong><span>Asks Owners about pet 7 and owner 42.</span></li>
+      <li><strong>Owners</strong><span data-field="lookup"></span></li>
+      <li><strong data-field="outcome"></strong><span data-field="message"></span></li>
+    </ol>
+  </div>
+</section>
+<script type="module" src="../../interactions/booking-scenarios.js"></script>
+
+<div id="ownership-lookup-results">
+
 | Result of the lookup | What the receptionist sees |
 | --- | --- |
 | Owners returns `200 OK` for the owner and pet together. | Visits saves the visit with the owner and pet IDs, then confirms the booking. |
 | Owners returns `404 Not Found` for that combination. | Visits asks the receptionist to check the owner and pet. No visit is saved. |
 | Owners fails to respond before the timeout. | Visits stops before it saves the visit and asks the receptionist to try again later. |
+
+</div>
 
 The lookup tells Visits who owns the pet **at the time of the check**. The check and the later save happen in separate services. If the clinic needs to guarantee that ownership cannot change between those steps, this design alone cannot give that guarantee. That requirement would be a reason to reconsider where the booking boundary belongs. <sup><a href="#ref-1">[1]</a></sup>
 
@@ -76,11 +98,11 @@ The [chapter on Self-contained Systems](../scs-and-isa/) explores the second opt
 
 Suppose a receptionist opens an owner's page to check a pet's last visit. In our design, the browser first loads the owner and pets from Owners through the gateway. It then requests the visit history from Visits through the same gateway. If Visits is down, the owner details are still available. The history section should say “Visit history is currently unavailable.” An empty list would suggest the pet has never had a visit. Compare that with an outage in Owners during booking. A missing visit history can be shown as a gap on the page. A missing ownership check stops the receptionist from confirming the visit.
 
-The community version of PetClinic shows another way to put that information on the same page. The browser can ask for both in one request. In <a href="https://github.com/spring-petclinic/spring-petclinic-microservices/blob/e8b747ab522721076cacb5cf688eb8a54ba8c5c9/spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/boundary/web/ApiGatewayController.java#L54-L65" target="_blank" rel="noopener noreferrer"><code>getOwnerDetails</code></a>, the gateway loads the owner and their pets, fetches the visits for those pets and returns the combined result. This is **gateway aggregation**. <sup><a href="#ref-3">[3]</a></sup>
+The community version of PetClinic shows another way to put that information on the same page. The browser can ask for both in one request. In <a href="https://github.com/spring-petclinic/spring-petclinic-microservices/blob/e8b747ab522721076cacb5cf688eb8a54ba8c5c9/spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/boundary/web/ApiGatewayController.java#L54-L65" target="_blank" rel="noopener noreferrer"><code>getOwnerDetails</code></a>, the gateway loads the owner and their pets, fetches the visits for those pets and returns the combined result. <sup><a href="#ref-4">[4]</a></sup> This is **gateway aggregation**. <sup><a href="#ref-3">[3]</a></sup>
 
 ## Evaluating the trade-off
 
-For a small clinic with one development team, separate releases may solve little. Booking would now depend on a network call, and someone would have to deploy, monitor and troubleshoot three services and a gateway. Starting with a well-structured monolith gives the team time to learn which features change together before choosing service boundaries. <sup><a href="#ref-1">[1]</a></sup> <sup><a href="#ref-4">[4]</a></sup>
+For a small clinic with one development team, separate releases may solve little. Booking would now depend on a network call, and someone would have to deploy, monitor and troubleshoot three services and a gateway. Starting with a well-structured monolith gives the team time to learn which features change together before choosing service boundaries. <sup><a href="#ref-1">[1]</a></sup> <sup><a href="#ref-5">[5]</a></sup>
 
 The case for a split gets stronger if the Visits team regularly has to wait for an unrelated directory release, or if directory traffic repeatedly forces the clinic to scale the whole application. Those are two separate reasons to split. The booking example gives the team an equally concrete reason to keep some features together. If receptionists always need a current ownership check, separating Visits from Owners adds a dependency to every booking.
 
@@ -96,6 +118,7 @@ The case for a split gets stronger if the Visits team regularly has to wait for 
 **[3]** Chris Richardson, "[Pattern: API Gateway](https://microservices.io/patterns/apigateway.html)," microservices.io, sections "Solution" and "Resulting context." Accessed 17 November 2026.
 
 <a id="ref-4"></a>
-**[4]** Martin Fowler, "[Monolith First](https://martinfowler.com/bliki/MonolithFirst.html)," martinfowler.com, 3 June 2015. Accessed 17 November 2026.
+**[4]** Spring PetClinic Microservices contributors, *Spring PetClinic Microservices*, commit `e8b747ab522721076cacb5cf688eb8a54ba8c5c9`, <a href="https://github.com/spring-petclinic/spring-petclinic-microservices/blob/e8b747ab522721076cacb5cf688eb8a54ba8c5c9/spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/boundary/web/ApiGatewayController.java#L54-L65" target="_blank" rel="noopener noreferrer"><code>ApiGatewayController.getOwnerDetails</code></a> for the aggregated owner response. Accessed 18 November 2026.
 
-Return to [Modular Monolith](../modular-monolith/). Continue with [Self-contained Systems and ISA](../scs-and-isa/).
+<a id="ref-5"></a>
+**[5]** Martin Fowler, "[Monolith First](https://martinfowler.com/bliki/MonolithFirst.html)," martinfowler.com, 3 June 2015. Accessed 17 November 2026.

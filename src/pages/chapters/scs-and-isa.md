@@ -38,6 +38,8 @@ For example, the link could open `/visits/new?ownerId=42&petId=7`. Visits render
 
 Suppose Owners has just assigned pet 7 to owner 42. The example message below carries the current booking details for that pet. The IDs match the link above. This is an example contract for our proposed design.
 
+<p class="code-source"><span><strong>PetChanged</strong><small>Proposed event</small></span></p>
+
 ```json
 {
   "type": "PetChanged",
@@ -60,7 +62,29 @@ For that to work, Visits needs an initial copy of the pets and a way to keep it 
 | Owners registered a new pet, but Visits has not received the update. | Try the numbers again once the update arrives. Visits cannot confirm a booking for an unknown pet. |
 | Visits has yet to apply the transfer from owner 42 to owner 56. | A booking for owner 42 can still pass the local check. |
 
-That last case is the decision to discuss with the clinic. If it accepts a delay in ownership updates, Visits can keep booking through an Owners outage. If every booking must reflect the latest transfer, a local copy alone cannot meet the rule. The team could keep the ownership change and booking check inside the same transaction boundary. Simply sending messages more often would shorten the usual delay without removing it.
+<section class="interaction booking-scenario" data-booking-scenario="scs" aria-labelledby="ownership-transfer-title" hidden>
+  <h4 id="ownership-transfer-title">Follow a pet transfer</h4>
+  <p>Pet 7 stays active and the booking date is valid. Follow the transfer and see what Visits would do with a booking for each owner.</p>
+  <div class="interaction-controls" role="group" aria-label="Stage of the transfer">
+    <button type="button" data-scenario="before" aria-pressed="true">Before transfer</button>
+    <button type="button" data-scenario="transferred" aria-pressed="false">Transfer to owner 56</button>
+    <button type="button" data-scenario="applied" aria-pressed="false">Apply update in Visits</button>
+  </div>
+  <div class="interaction-result" role="status" aria-atomic="true">
+    <dl class="booking-scenario-state">
+      <div><dt>Owners record</dt><dd data-field="owners"></dd></div>
+      <div><dt>Visits copy</dt><dd data-field="visits"></dd></div>
+    </dl>
+    <p data-field="delivery"></p>
+    <dl class="booking-scenario-state">
+      <div><dt>Book for owner 42</dt><dd data-field="owner42"></dd></div>
+      <div><dt>Book for owner 56</dt><dd data-field="owner56"></dd></div>
+    </dl>
+  </div>
+</section>
+<script type="module" src="../../interactions/booking-scenarios.js"></script>
+
+The transfer illustrates the choice the clinic has to make. If it accepts a delay in ownership updates, Visits can keep booking through an Owners outage. If every booking must reflect the latest transfer, a local copy alone cannot meet the rule. The team could keep the ownership change and booking check inside the same transaction boundary. Simply sending messages more often would shorten the usual delay without removing it.
 
 ## Where Independent Systems Architecture fits
 
@@ -88,7 +112,7 @@ The table compares the four **pet clinic designs** used in this part of the site
 | --- | --- | --- | --- | --- |
 | What gets released together? | The whole clinic application | The whole clinic application, including its modules | Each service has its own release | Each web application has its own release |
 | Where is ownership checked? | In the clinic application | In the same process, using the owner module | Visits calls Owners and waits | Visits checks its local copy |
-| What if owner data is unavailable? | Booking needs the application's owner records | The module boundary still leaves booking dependent on those records | A timeout stops the booking | Known pets can still be booked using the last update |
+| What if the original owner records are unavailable? | Booking needs the application's owner records | The module boundary still leaves booking dependent on those records | A timeout stops the booking | Known pets can still be booked if the local copy is available |
 | What must the team look after? | One release for all features | The interfaces between modules | Network calls and failures during a request | Delivery of updates and the effect of older data on bookings |
 
 These choices describe where the clinic draws boundaries between running applications. Inside any one of them, the team still has to decide where to put the controller, booking rules and database access. The [Visit use case](../visit-use-case/) follows those decisions inside the application.
@@ -109,5 +133,3 @@ These choices describe where the clinic draws boundaries between running applica
 
 <a id="ref-5"></a>
 **[5]** ISA contributors, “[Independent Systems Architecture](https://isa-principles.org/),” sections “Terms” and “Principles.” Accessed 18 November 2026.
-
-Return to [Microservices](../microservices/). Continue with [The Visit use case](../visit-use-case/).

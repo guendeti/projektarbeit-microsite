@@ -17,7 +17,9 @@ The hexagon gives us room to draw several interactions around one application. I
 
 ## The same code seen as ports and adapters
 
-We use the same booking code as in the [Clean Architecture chapter](../clean-architecture/). Start with the top row of the diagram. The web controller asks the application to book a visit, and the interactor uses the JPA adapter to store it. Now follow the bottom row. A test makes the same request, this time with an in-memory store.
+We use the same booking code as in the [Clean Architecture chapter](../clean-architecture/). The driving port, `BookVisitUseCase`, is the same interface that Clean calls the input port. `VisitStore` is the driven port here and the output port in Clean.
+
+Start with the top row of the diagram. The web controller asks the application to book a visit, and the interactor uses the JPA adapter to store it. Now follow the bottom row. A test makes the same request, this time with an in-memory store.
 
 <figure class="architecture-figure">
 <div class="diagram-scroll" tabindex="0" role="region" aria-label="Architecture diagram. Scroll horizontally to see the complete figure.">
@@ -34,7 +36,7 @@ The diagram covers submitting a booking. Opening the form or showing it again af
 
 To see how the test uses the lower path in the diagram, look at `setUp()`. It creates a fresh in-memory store with pet 7 registered to owner 1 and passes that store to the interactor. The test then calls the same `bookVisit` operation as the web controller.
 
-**Our tests · <a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/test/java/org/springframework/samples/petclinic/visits/clean/BookVisitInteractorTests.java#L38-L49" target="_blank" rel="noopener noreferrer"><code>BookVisitInteractorTests.java</code></a>**
+<p class="code-source"><span><strong>BookVisitInteractorTests.java</strong><small>Our tests</small></span><a href="https://github.com/guendeti/spring-petclinic/blob/bdd7783bf9c778882b7ec77e0f0a2f402e20b247/src/test/java/org/springframework/samples/petclinic/visits/clean/BookVisitInteractorTests.java#L38-L49" target="_blank" rel="noopener noreferrer" aria-label="View BookVisitInteractorTests.java on GitHub (opens in a new tab)">View on GitHub</a></p>
 
 ```java
 @BeforeEach
@@ -72,5 +74,3 @@ For this booking, the two views answer different questions about the same code. 
 
 <a id="ref-2"></a>
 **[2]** Robert C. Martin, "[The Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)," Clean Coder Blog, 13 August 2012, introduction and section "Crossing boundaries." Accessed 18 November 2026.
-
-Return to [Clean Architecture](../clean-architecture/). Continue with [Onion Architecture](../onion-architecture/).
